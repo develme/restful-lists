@@ -1,38 +1,26 @@
 <?php
 
 
-namespace Tests\Unit;
-
+namespace Tests\Unit\Model\Engine;
 
 use Carbon\Carbon;
-use Closure;
-use DevelMe\RestfulList\Contracts\Comparator\Composer;
-use DevelMe\RestfulList\Contracts\Comparator\Registration;
-use DevelMe\RestfulList\Engines\Model as ModelEngine;
-use DevelMe\RestfulList\Filters\ModelComposer;
-use Exception;
-use Illuminate\Container\Util;
 use Illuminate\Database\Eloquent\Builder;
-use Mockery;
 use Mockery\MockInterface;
-use ReflectionClass;
 use ReflectionException;
 use Tests\Models\Example;
-use Tests\TestCase;
 use Tests\Traits\WithEloquent;
 use Tests\Traits\WithFaker;
+use Tests\Unit\Model\TestCase;
 
-class EngineTest extends TestCase
+/**
+ * Class ModelEngineTest
+ * @package Tests\Unit
+ * @group Model
+ * @group Engine
+ */
+class FilterTest extends TestCase
 {
     use WithFaker, WithEloquent;
-
-    protected array $engines = [
-        'model' =>  [
-            'engine' => ModelEngine::class,
-            'composer' => ModelComposer::class
-        ]
-//        'array' => ArrayEngine::class,
-    ];
 
     /**
      * @test
@@ -40,28 +28,30 @@ class EngineTest extends TestCase
      */
     public function it_returns_all()
     {
-        $resources['model'] = Example::factory($this->faker->numberBetween(5, 15))->make();
-        $mocks['model'] = $this->generateEngineMock('model', function ($mocks) use ($resources) {
+        $resource = Example::factory($this->faker->numberBetween(5, 15))->make();
+        $mocks = $this->generateEngineMock(function ($mocks) use ($resource) {
             /** @var MockInterface $mock */
             foreach ($mocks as $mock) {
                 if ($mock instanceof Builder) {
-                    $mock->shouldReceive('get')->once()->andReturn($resources['model']);
-                    $mock->shouldReceive('count')->once()->andReturn($resources['model']->count());
+                    $mock->shouldReceive('get')->once()->andReturn($resource);
+                    $mock->shouldReceive('count')->once()->andReturn($resource->count());
                 }
             }
 
             return $mocks;
         });
 
-        $this->checkFiltersAgainstEngines(
+        $this->checkFiltersAgainstEngine(
             filters: [],
-            data: $mocks,
-            method: function ($engine) use ($resources) {
-                match($engine::class) {
-                    ModelEngine::class => $this->checkEngine($engine, $resources['model'])
-                };
+            mocks: $mocks,
+            method: function ($engine) use ($resource) {
+                $results = $engine->go();
 
-            });
+                $this->assertEquals($resource->count(), $results->count());
+                $this->assertEquals($resource->count(), $engine->count());
+                $this->assertEquals($resource->first()->name, $results->first()->name);
+            }
+        );
     }
 
     /**
@@ -73,7 +63,7 @@ class EngineTest extends TestCase
         $filters = ['type' => "Test Type", "status" => "Test"];
         $count = $this->faker->numberBetween(5, 20);
 
-        $mocks['model'] = $this->generateEngineMock('model', function ($mocks) use ($count) {
+        $mocks = $this->generateEngineMock(function ($mocks) use ($count) {
             foreach ($mocks as $mock) {
                 /** @var MockInterface $mock */
                 if ($mock instanceof Builder) {
@@ -86,9 +76,9 @@ class EngineTest extends TestCase
             return $mocks;
         });
 
-        $this->checkFiltersAgainstEngines(
+        $this->checkFiltersAgainstEngine(
             filters: $filters,
-            data: $mocks,
+            mocks: $mocks,
             result: $count
         );
     }
@@ -112,7 +102,7 @@ class EngineTest extends TestCase
             ],
         ];
         $count = $this->faker->numberBetween(5, 15);
-        $mocks['model'] = $this->generateEngineMock('model', function ($mocks) use ($count) {
+        $mocks = $this->generateEngineMock(function ($mocks) use ($count) {
             foreach ($mocks as $mock) {
                 /** @var MockInterface $mock */
                 if ($mock instanceof Builder) {
@@ -125,9 +115,9 @@ class EngineTest extends TestCase
             return $mocks;
         });
 
-        $this->checkFiltersAgainstEngines(
+        $this->checkFiltersAgainstEngine(
             filters: $filters,
-            data: $mocks,
+            mocks: $mocks,
             result: $count
         );
     }
@@ -300,124 +290,5 @@ class EngineTest extends TestCase
             value: $search,
             mockHandle: fn ($mock) => $mock->shouldReceive('where')->with('type', '>=', $search)->once()
         );
-    }
-
-    /**
-     * @param string $type
-     * @param mixed $value
-     * @param Closure $mockHandle
-     *
-     * @throws ReflectionException
-     */
-    protected function checkFilterType(string $type, mixed $value, Closure $mockHandle)
-    {
-        $filter = [
-            'type' => [
-                'field' => 'type',
-                'type' => $type,
-                'value' => $value,
-            ]
-        ];
-        $count = $this->faker->numberBetween(5, 15);
-        $mocks['model'] = $this->generateEngineMock('model', function ($mocks) use ($count, $mockHandle) {
-            /** @var MockInterface $mock */
-            foreach ($mocks as $mock) {
-                if ($mock instanceof Builder) {
-                    $mockHandle($mock);
-                    $mock->shouldReceive('count')->once()->andReturn($count);
-                }
-            }
-
-            return $mocks;
-        });
-
-        $this->checkFiltersAgainstEngines(
-            filters: $filter,
-            data: $mocks,
-            result: $count
-        );
-    }
-
-    /**
-     * @param array $filters
-     * @param array $data
-     * @param Closure|string $method
-     * @param int $result
-     *
-     * @throws ReflectionException
-     * @throws Exception
-     */
-    protected function checkFiltersAgainstEngines(array $filters, array $data, Closure|string $method = 'count', $result = 0)
-    {
-        foreach ($this->engines as $type => $setting) {
-            $datum = $data[$type] ?? null;
-            if (!is_null($datum)) {
-                $engine = (new ReflectionClass($setting['engine']))->newInstanceArgs($datum);
-
-                $engine->filters($filters);
-
-                if ($method instanceof Closure) {
-                    $method($engine);
-                } else {
-                    $this->assertEquals($result, call_user_func([$engine, $method]));
-                }
-            } else {
-                throw new Exception("Engine type $type not supported by the test");
-            }
-        }
-    }
-
-    protected function checkEngine($engine, $resources): bool {
-        $results = $engine->go();
-
-        $this->assertEquals($resources->count(), $results->count());
-        $this->assertEquals($resources->count(), $engine->count());
-        $this->assertEquals($resources->first()->name, $results->first()->name);
-
-        return true;
-    }
-
-    /**
-     * @param string $type
-     * @param Closure $handle
-     *
-     * @return MockInterface[]
-     *
-     * @throws ReflectionException
-     * @throws Exception
-     */
-    private function generateEngineMock(string $type, Closure $handle): array
-    {
-        if (!isset($this->engines[$type])) {
-            throw new Exception("Engine type $type not supported");
-        }
-
-        $mocks = [];
-        $setting = $this->engines[$type];
-        $reflection = new ReflectionClass($setting['engine']);
-
-        $parameters = $reflection->getConstructor()?->getParameters();
-
-        foreach ($parameters as $dependency) {
-            $name = Util::getParameterClassName($dependency);
-
-            $dependency = new ReflectionClass($name);
-
-            if ($dependency->implementsInterface(Composer::class)) {
-                $composer = new ReflectionClass($setting['composer']);
-
-                $instance = $composer->newInstance();
-
-                if ($composer->implementsInterface(Registration::class)) {
-                    $instance->register();
-                }
-
-                $mocks[] = $instance;
-            } else {
-                $mocks[] = Mockery::mock($name);
-            }
-        }
-
-        return $handle($mocks);
     }
 }

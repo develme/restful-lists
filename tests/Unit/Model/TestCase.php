@@ -6,6 +6,7 @@ namespace Tests\Unit\Model;
 
 use DevelMe\RestfulList\Engines\Model as ModelEngine;
 use DevelMe\RestfulList\Filters\ModelComposer;
+use DevelMe\RestfulList\Filters\ModelArrangement;
 use Tests\Traits\WithEngineParts;
 
 abstract class TestCase extends \Tests\TestCase
@@ -14,6 +15,7 @@ abstract class TestCase extends \Tests\TestCase
 
     protected array $engine = [
         'engine' => ModelEngine::class,
-        'composer' => ModelComposer::class
+        'composer' => ModelComposer::class,
+        'arrangement' => ModelArrangement::class,
     ];
 }

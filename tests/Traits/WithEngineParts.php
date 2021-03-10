@@ -6,6 +6,7 @@ namespace Tests\Traits;
 
 use DevelMe\RestfulList\Contracts\Comparator\Composer;
 use DevelMe\RestfulList\Contracts\Comparator\Registration;
+use DevelMe\RestfulList\Contracts\Orders\Arrangement;
 use Illuminate\Container\Util;
 use Illuminate\Database\Eloquent\Builder;
 use Mockery\MockInterface;
@@ -14,6 +15,7 @@ use Exception;
 use Mockery;
 use ReflectionClass;
 use ReflectionException;
+use Tests\TestCase;
 
 trait WithEngineParts
 {
@@ -43,49 +45,83 @@ trait WithEngineParts
 
             $dependency = new ReflectionClass($name);
 
-            if ($dependency->implementsInterface(Composer::class)) {
-                $composer = new ReflectionClass($setting['composer']);
-
-                $instance = $composer->newInstance();
-
-                if ($composer->implementsInterface(Registration::class)) {
-                    $instance->register();
-                }
-
-                $mocks[] = $instance;
-            } else {
-                $mocks[] = Mockery::mock($name);
-            }
+            $mocks[] = match (true) {
+                $dependency->implementsInterface(Composer::class) === true => $this->generateComposerInstance($setting),
+                $dependency->implementsInterface(Arrangement::class) === true => $this->generateArrangementInstance($setting),
+                default => Mockery::mock($name)
+            };
         }
 
         return $handle($mocks);
     }
 
     /**
-     * @param array $filters
-     * @param array $mocks
-     * @param Closure|string $method
-     * @param int $result
-     *
+     * @param $setting
+     * @return Composer
      * @throws ReflectionException
-     * @throws Exception
      */
-    protected function checkFiltersAgainstEngine(array $filters, array $mocks, Closure|string $method = 'count', $result = 0)
+    protected function generateComposerInstance($setting): Composer
     {
-        if (!isset($this->engine)) {
-            throw new Exception("Engine property not configured");
+        $composer = new ReflectionClass($setting['composer']);
+
+        /** @var Composer $instance */
+        $instance = $composer->newInstance();
+
+        if ($composer->implementsInterface(Registration::class)) {
+            $instance->register();
         }
 
-        $setting = $this->engine;
+        return $instance;
+    }
 
-        $engine = (new ReflectionClass($setting['engine']))->newInstanceArgs($mocks);
+    /**
+     * @param $setting
+     * @return Arrangement
+     * @throws ReflectionException
+     */
+    protected function generateArrangementInstance($setting): Arrangement
+    {
+        $composer = new ReflectionClass($setting['arrangement']);
+
+        /** @var Arrangement $instance */
+        $instance = $composer->newInstance();
+
+        return $instance;
+    }
+
+    /**
+     * @param array $filters
+     * @param array $mocks
+     * @param Closure|null $method
+     *
+     * @throws ReflectionException
+     */
+    protected function checkFiltersAgainstEngine(array $filters, array $mocks, ?Closure $method = null)
+    {
+        $engine = $this->instantiateEngine($mocks);
 
         $engine->filters($filters);
 
         if ($method instanceof Closure) {
-            $method($engine);
-        } else {
-            $this->assertEquals($result, call_user_func([$engine, $method]));
+            $method($engine, $this);
+        }
+    }
+
+    /**
+     * @param array $orders
+     * @param array $mocks
+     * @param Closure|null $method
+     *
+     * @throws ReflectionException
+     */
+    protected function checkOrdersAgainstEngine(array $orders, array $mocks, ?Closure $method = null)
+    {
+        $engine = $this->instantiateEngine($mocks);
+
+        $engine->orders($orders);
+
+        if ($method instanceof Closure) {
+            $method($engine, $this);
         }
     }
 
@@ -121,7 +157,24 @@ trait WithEngineParts
         $this->checkFiltersAgainstEngine(
             filters: $filter,
             mocks: $mocks,
-            result: $count
+            method: fn($engine, TestCase $tester) => $tester->assertEquals($count, $engine->count())
         );
+    }
+
+    /**
+     * @param array $mocks
+     * @return object
+     * @throws ReflectionException
+     * @throws Exception
+     */
+    protected function instantiateEngine(array $mocks): object
+    {
+        if (!isset($this->engine)) {
+            throw new Exception("Engine property not configured");
+        }
+
+        $setting = $this->engine;
+
+        return (new ReflectionClass($setting['engine']))->newInstanceArgs($mocks);
     }
 }

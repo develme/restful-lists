@@ -17,6 +17,7 @@ use Tests\Unit\Model\TestCase;
  * @package Tests\Unit
  * @group Model
  * @group Engine
+ * @group Filter
  */
 class FilterTest extends TestCase
 {
@@ -79,7 +80,7 @@ class FilterTest extends TestCase
         $this->checkFiltersAgainstEngine(
             filters: $filters,
             mocks: $mocks,
-            result: $count
+            method: fn($engine, \Tests\TestCase $tester) => $tester->assertEquals($count, $engine->count())
         );
     }
 
@@ -118,7 +119,7 @@ class FilterTest extends TestCase
         $this->checkFiltersAgainstEngine(
             filters: $filters,
             mocks: $mocks,
-            result: $count
+            method: fn($engine, TestCase $tester) => $tester->assertEquals($count, $engine->count())
         );
     }
 

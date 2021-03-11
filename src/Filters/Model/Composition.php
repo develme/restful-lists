@@ -5,7 +5,7 @@ namespace DevelMe\RestfulList\Filters\Model;
 
 
 use Closure;
-use DevelMe\RestfulList\Contracts\Comparator\Defaults;
+use DevelMe\RestfulList\Contracts\Defaults;
 use DevelMe\RestfulList\Contracts\Filters\Filtration;
 use DevelMe\RestfulList\Filters\Model\Contains;
 use DevelMe\RestfulList\Filters\Model\Equals;
@@ -19,7 +19,7 @@ use DevelMe\RestfulList\Filters\Model\LessThanOrEqual;
 use DevelMe\RestfulList\Filters\Model\GreaterThan;
 use DevelMe\RestfulList\Filters\Model\GreaterThanOrEqual;
 
-class Map implements Defaults
+class Composition implements Defaults
 {
     /**
      * @return Closure

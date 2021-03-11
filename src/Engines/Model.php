@@ -65,40 +65,40 @@ final class Model extends Base implements Data
 
     public function sql(): string
     {
-        $this->prepareModel();
+        $this->prepare();
 
         return $this->data->toSql();
     }
 
     public function bindings(): array
     {
-        $this->prepareModel();
+        $this->prepare();
 
         return $this->data->getBindings();
     }
 
     public function count(): int
     {
-        $this->prepareModel();
+        $this->prepare();
 
         return $this->results->count();
     }
 
     public function total(): int
     {
-        $this->prepareModel();
+        $this->prepare();
 
         return $this->total;
     }
 
     public function go()
     {
-        $this->prepareModel();
+        $this->prepare();
 
         return $this->results;
     }
 
-    protected function prepareModel()
+    protected function prepare()
     {
         if ($this->prepared === false) {
             $this->applyTotal();

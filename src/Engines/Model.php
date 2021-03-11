@@ -12,7 +12,6 @@ use DevelMe\RestfulList\Filters\Setting as FilterSetting;
 use DevelMe\RestfulList\Orders\Setting as OrderSetting;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 
 final class Model extends Base implements Data
 {

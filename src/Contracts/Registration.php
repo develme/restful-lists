@@ -1,7 +1,7 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Contracts\Comparator;
+namespace DevelMe\RestfulList\Contracts;
 
 
 use Closure;

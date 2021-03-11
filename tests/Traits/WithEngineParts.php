@@ -5,7 +5,8 @@ namespace Tests\Traits;
 
 
 use DevelMe\RestfulList\Contracts\Comparator\Composer;
-use DevelMe\RestfulList\Contracts\Comparator\Registration;
+use DevelMe\RestfulList\Contracts\Orchestration;
+use DevelMe\RestfulList\Contracts\Registration;
 use DevelMe\RestfulList\Contracts\Orders\Arrangement;
 use Illuminate\Container\Util;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,12 +16,12 @@ use Exception;
 use Mockery;
 use ReflectionClass;
 use ReflectionException;
+use Tests\Models\Example;
 use Tests\TestCase;
 
 trait WithEngineParts
 {
     /**
-     * @param string $type
      * @param Closure $handle
      *
      * @return MockInterface[]
@@ -46,8 +47,7 @@ trait WithEngineParts
             $dependency = new ReflectionClass($name);
 
             $mocks[] = match (true) {
-                $dependency->implementsInterface(Composer::class) === true => $this->generateComposerInstance($setting),
-                $dependency->implementsInterface(Arrangement::class) === true => $this->generateArrangementInstance($setting),
+                $dependency->implementsInterface(Orchestration::class) === true => $this->generateOrchestratorInstance($setting),
                 default => Mockery::mock($name)
             };
         }
@@ -60,31 +60,16 @@ trait WithEngineParts
      * @return Composer
      * @throws ReflectionException
      */
-    protected function generateComposerInstance($setting): Composer
+    protected function generateOrchestratorInstance($setting): Orchestration
     {
-        $composer = new ReflectionClass($setting['composer']);
+        $composer = new ReflectionClass($setting['orchestrator']);
 
-        /** @var Composer $instance */
+        /** @var Orchestration $instance */
         $instance = $composer->newInstance();
 
         if ($composer->implementsInterface(Registration::class)) {
             $instance->register();
         }
-
-        return $instance;
-    }
-
-    /**
-     * @param $setting
-     * @return Arrangement
-     * @throws ReflectionException
-     */
-    protected function generateArrangementInstance($setting): Arrangement
-    {
-        $composer = new ReflectionClass($setting['arrangement']);
-
-        /** @var Arrangement $instance */
-        $instance = $composer->newInstance();
 
         return $instance;
     }
@@ -126,6 +111,24 @@ trait WithEngineParts
     }
 
     /**
+     * @param array $pagination
+     * @param array $mocks
+     * @param Closure|null $method
+     *
+     * @throws ReflectionException
+     */
+    protected function checkPaginationAgainstEngine(array $pagination, array $mocks, ?Closure $method = null)
+    {
+        $engine = $this->instantiateEngine($mocks);
+
+        $engine->pagination($pagination);
+
+        if ($method instanceof Closure) {
+            $method($engine, $this);
+        }
+    }
+
+    /**
      * @param string $type
      * @param mixed $value
      * @param Closure $mockHandle
@@ -141,13 +144,14 @@ trait WithEngineParts
                 'value' => $value,
             ]
         ];
-        $count = $this->faker->numberBetween(5, 15);
-        $mocks = $this->generateEngineMock(function ($mocks) use ($count, $mockHandle) {
+        $resources = Example::factory($this->faker->numberBetween(5, 20))->make();
+
+        $mocks = $this->generateEngineMock(function ($mocks) use ($resources, $mockHandle) {
             /** @var MockInterface $mock */
             foreach ($mocks as $mock) {
                 if ($mock instanceof Builder) {
                     $mockHandle($mock);
-                    $mock->shouldReceive('count')->once()->andReturn($count);
+                    $this->mockBuilderWithResources($mock, $resources);
                 }
             }
 
@@ -157,7 +161,7 @@ trait WithEngineParts
         $this->checkFiltersAgainstEngine(
             filters: $filter,
             mocks: $mocks,
-            method: fn($engine, TestCase $tester) => $tester->assertEquals($count, $engine->count())
+            method: fn($engine, TestCase $tester) => $tester->assertEquals($resources->count(), $engine->count())
         );
     }
 

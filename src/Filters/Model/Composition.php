@@ -1,7 +1,7 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Filters;
+namespace DevelMe\RestfulList\Filters\Model;
 
 
 use Closure;
@@ -19,14 +19,13 @@ use DevelMe\RestfulList\Filters\Model\LessThanOrEqual;
 use DevelMe\RestfulList\Filters\Model\GreaterThan;
 use DevelMe\RestfulList\Filters\Model\GreaterThanOrEqual;
 
-class ModelDefaults implements Defaults
+class Map implements Defaults
 {
     /**
      * @return Closure
      */
     public function defaults(): Closure
     {
-
         return fn($compare): Filtration => match($compare) {
             'contains' => new Contains,
             'not_equals' => new NotEquals,

@@ -5,8 +5,9 @@ namespace Tests\Unit\Model;
 
 
 use DevelMe\RestfulList\Engines\Model as ModelEngine;
-use DevelMe\RestfulList\Filters\ModelComposer;
-use DevelMe\RestfulList\Filters\ModelArrangement;
+use DevelMe\RestfulList\Orchestration\Model\Orchestrator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Tests\Traits\WithEngineParts;
 
 abstract class TestCase extends \Tests\TestCase
@@ -15,7 +16,12 @@ abstract class TestCase extends \Tests\TestCase
 
     protected array $engine = [
         'engine' => ModelEngine::class,
-        'composer' => ModelComposer::class,
-        'arrangement' => ModelArrangement::class,
+        'orchestrator' => Orchestrator::class,
     ];
+
+    protected function mockBuilderWithResources(Builder $mock, Collection $resources): void
+    {
+        $mock->shouldReceive('count')->andReturn($resources->count());
+        $mock->shouldReceive('get')->andReturn($resources);
+    }
 }

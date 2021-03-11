@@ -29,13 +29,13 @@ class FilterTest extends TestCase
      */
     public function it_returns_all()
     {
-        $resource = Example::factory($this->faker->numberBetween(5, 15))->make();
-        $mocks = $this->generateEngineMock(function ($mocks) use ($resource) {
+        $resources = Example::factory($this->faker->numberBetween(5, 15))->make();
+
+        $mocks = $this->generateEngineMock(function ($mocks) use ($resources) {
             /** @var MockInterface $mock */
             foreach ($mocks as $mock) {
                 if ($mock instanceof Builder) {
-                    $mock->shouldReceive('get')->once()->andReturn($resource);
-                    $mock->shouldReceive('count')->once()->andReturn($resource->count());
+                    $this->mockBuilderWithResources($mock, $resources);
                 }
             }
 
@@ -45,12 +45,11 @@ class FilterTest extends TestCase
         $this->checkFiltersAgainstEngine(
             filters: [],
             mocks: $mocks,
-            method: function ($engine) use ($resource) {
+            method: function ($engine) use ($resources) {
                 $results = $engine->go();
 
-                $this->assertEquals($resource->count(), $results->count());
-                $this->assertEquals($resource->count(), $engine->count());
-                $this->assertEquals($resource->first()->name, $results->first()->name);
+                $this->assertEquals($resources->count(), $engine->count());
+                $this->assertEquals($resources->first()->name, $results->first()->name);
             }
         );
     }
@@ -62,15 +61,15 @@ class FilterTest extends TestCase
     public function it_has_simplified_filtering(): void
     {
         $filters = ['type' => "Test Type", "status" => "Test"];
-        $count = $this->faker->numberBetween(5, 20);
+        $resources = Example::factory($this->faker->numberBetween(5, 20))->make();
 
-        $mocks = $this->generateEngineMock(function ($mocks) use ($count) {
+        $mocks = $this->generateEngineMock(function ($mocks) use ($resources) {
             foreach ($mocks as $mock) {
                 /** @var MockInterface $mock */
                 if ($mock instanceof Builder) {
                     $mock->shouldReceive('where')->with('type', '=', 'Test Type')->once();
                     $mock->shouldReceive('where')->with('status', '=', 'Test')->once();
-                    $mock->shouldReceive('count')->once()->andReturn($count);
+                    $this->mockBuilderWithResources($mock, $resources);
                 }
             }
 
@@ -80,7 +79,7 @@ class FilterTest extends TestCase
         $this->checkFiltersAgainstEngine(
             filters: $filters,
             mocks: $mocks,
-            method: fn($engine, \Tests\TestCase $tester) => $tester->assertEquals($count, $engine->count())
+            method: fn($engine, \Tests\TestCase $tester) => $tester->assertEquals($resources->count(), $engine->count())
         );
     }
 
@@ -102,14 +101,15 @@ class FilterTest extends TestCase
                 'value' => 'Test'
             ],
         ];
-        $count = $this->faker->numberBetween(5, 15);
-        $mocks = $this->generateEngineMock(function ($mocks) use ($count) {
+        $resources = Example::factory($this->faker->numberBetween(5, 20))->make();
+
+        $mocks = $this->generateEngineMock(function ($mocks) use ($resources) {
             foreach ($mocks as $mock) {
                 /** @var MockInterface $mock */
                 if ($mock instanceof Builder) {
                     $mock->shouldReceive('where')->with('type', 'like', '%Test Type%')->once();
                     $mock->shouldReceive('where')->with('status', '!=', 'Test')->once();
-                    $mock->shouldReceive('count')->once()->andReturn($count);
+                    $this->mockBuilderWithResources($mock, $resources);
                 }
             }
 
@@ -119,7 +119,7 @@ class FilterTest extends TestCase
         $this->checkFiltersAgainstEngine(
             filters: $filters,
             mocks: $mocks,
-            method: fn($engine, TestCase $tester) => $tester->assertEquals($count, $engine->count())
+            method: fn($engine, TestCase $tester) => $tester->assertEquals($resources->count(), $engine->count())
         );
     }
 

@@ -1,20 +1,21 @@
 <?php
 
-
-namespace DevelMe\RestfulList\Filters;
+namespace DevelMe\RestfulList\Orchestration\Model;
 
 use Closure;
 use DevelMe\RestfulList\Contracts\Comparator\Composer;
 use DevelMe\RestfulList\Contracts\Comparator\Registration;
 use DevelMe\RestfulList\Contracts\Engine\Data;
 use DevelMe\RestfulList\Contracts\Filters\Filtration;
+use DevelMe\RestfulList\Contracts\Filters\Setting;
+use DevelMe\RestfulList\Filters\Model\Map;
 use ReflectionClass;
 
-class ModelComposer implements Composer, Registration
+class Composer implements Composer, Registration
 {
     protected Closure $compositions;
 
-    protected static string $defaults = ModelDefaults::class;
+    protected static string $defaults = Map::class;
 
     public function register(?Closure $compositions = null): void
     {

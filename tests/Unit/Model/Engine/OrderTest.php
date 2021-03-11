@@ -5,6 +5,7 @@ namespace Tests\Unit\Model\Engine;
 
 use Illuminate\Database\Eloquent\Builder;
 use Mockery\MockInterface;
+use Tests\Models\Example;
 use Tests\Traits\WithFaker;
 use Tests\Unit\Model\TestCase;
 
@@ -26,15 +27,15 @@ class OrderTest extends TestCase
     public function it_has_simplified_ordering()
     {
         $orders = ['type', 'status' => 'desc'];
-        $count = $this->faker->numberBetween(5, 15);
+        $resources = Example::factory($this->faker->numberBetween(5, 20))->make();
 
-        $mocks = $this->generateEngineMock(function ($mocks) use ($count) {
+        $mocks = $this->generateEngineMock(function ($mocks) use ($resources) {
             /** @var MockInterface $mock */
             foreach ($mocks as $mock) {
                 if ($mock instanceof Builder) {
                     $mock->shouldReceive('orderBy')->with('type')->once();
                     $mock->shouldReceive('orderBy')->with('status', 'desc')->once();
-                    $mock->shouldReceive('count')->once()->andReturn($count);
+                    $this->mockBuilderWithResources($mock, $resources);
                 }
             }
 
@@ -44,7 +45,7 @@ class OrderTest extends TestCase
         $this->checkOrdersAgainstEngine(
             orders: $orders,
             mocks: $mocks,
-            method: fn($engine, \Tests\TestCase $tester) => $tester->assertEquals($count, $engine->count())
+            method: fn($engine, \Tests\TestCase $tester) => $tester->assertEquals($resources->count(), $engine->count())
         );
     }
 
@@ -64,15 +65,15 @@ class OrderTest extends TestCase
             ]
         ];
 
-        $count = $this->faker->numberBetween(5, 15);
+        $resources = Example::factory($this->faker->numberBetween(5, 20))->make();
 
-        $mocks = $this->generateEngineMock(function ($mocks) use ($count) {
+        $mocks = $this->generateEngineMock(function ($mocks) use ($resources) {
             /** @var MockInterface $mock */
             foreach ($mocks as $mock) {
                 if ($mock instanceof Builder) {
                     $mock->shouldReceive('orderBy')->with('type', 'asc')->once();
                     $mock->shouldReceive('orderBy')->with('status', 'desc')->once();
-                    $mock->shouldReceive('count')->once()->andReturn($count);
+                    $this->mockBuilderWithResources($mock, $resources);
                 }
             }
 
@@ -82,7 +83,7 @@ class OrderTest extends TestCase
         $this->checkOrdersAgainstEngine(
             orders: $orders,
             mocks: $mocks,
-            method: fn($engine, \Tests\TestCase $tester) => $tester->assertEquals($count, $engine->count())
+            method: fn($engine, \Tests\TestCase $tester) => $tester->assertEquals($resources->count(), $engine->count())
         );
     }
 }

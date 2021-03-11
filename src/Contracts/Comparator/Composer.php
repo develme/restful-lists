@@ -8,5 +8,5 @@ use DevelMe\RestfulList\Contracts\Filters\Setting;
 
 interface Composer
 {
-    public function compare(Setting $setting, Data $data);
+    public function compose(Setting $setting, Data $data);
 }

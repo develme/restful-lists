@@ -5,14 +5,15 @@ namespace DevelMe\RestfulList\Engines;
 
 use Closure;
 use DevelMe\RestfulList\Contracts\Comparator\Composer;
-use DevelMe\RestfulList\Contracts\Orders\Arrangement;
 use DevelMe\RestfulList\Contracts\Engine\Data;
 use DevelMe\RestfulList\Contracts\Filters\Setting as FilterSettingInterface;
+use DevelMe\RestfulList\Contracts\Orchestration;
 use DevelMe\RestfulList\Contracts\Orders\Setting as OrderSettingInterface;
 use DevelMe\RestfulList\Filters\Setting as FilterSetting;
 use DevelMe\RestfulList\Orders\Setting as OrderSetting;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class Model implements Data
 {
@@ -22,23 +23,39 @@ class Model implements Data
 
     private array $orders = [];
 
+    private array $pagination = [];
+
+    private int $total;
+
+    /**
+     * This property tracks if filters,
+     *
+     * @var bool
+     */
     private bool $prepared = false;
 
-    private Closure $filterTypeCompare;
+    /**
+     * This property tracks if results have been fetched or not
+     *
+     * @var bool
+     */
+    private bool $fetched = false;
 
-    private array $filterTypeComparatorsMap = [
-        'equals' => '='
-    ];
+    /**
+     * This property tracks if results have been totaled before prepared.
+     *
+     * @var bool
+     */
+    private bool $totaled = false;
 
-    private Composer $comparator;
+    private Collection $results;
 
-    private Arrangement $arrangement;
+    private Orchestration $orchestrator;
 
-    public function __construct(Builder $data, Composer $comparator, Arrangement $arrangement)
+    public function __construct(Builder $data, Orchestration $orchestrator)
     {
         $this->data = $data;
-        $this->comparator = $comparator;
-        $this->arrangement = $arrangement;
+        $this->orchestrator = $orchestrator;
     }
 
     public function filters(array $filters): self
@@ -55,36 +72,68 @@ class Model implements Data
         return $this;
     }
 
+    public function pagination(array $pagination): self
+    {
+        $this->pagination = $pagination;
+
+        return $this;
+    }
+
     public function sql(): string
     {
-        return $this->prepareModel()->toSql();
+        $this->prepareModel();
+
+        return $this->data->toSql();
     }
 
     public function bindings(): array
     {
-        return $this->prepareModel()->getBindings();
+        $this->prepareModel();
+
+        return $this->data->getBindings();
     }
 
     public function count(): int
     {
-        return $this->prepareModel()->count();
+        $this->prepareModel();
+
+        return $this->results->count();
+    }
+
+    public function total(): int
+    {
+        $this->prepareModel();
+
+        return $this->total;
     }
 
     public function go()
     {
-        return $this->prepareModel()->get();
+        $this->prepareModel();
+
+        return $this->results;
     }
 
-    public function prepareModel()
+    protected function prepareModel()
     {
         if ($this->prepared === false) {
+            $this->applyTotal();
+
             $this->applyFilters();
             $this->applyOrders();
+            $this->applyPagination();
+
+            $this->results = $this->data->get();
 
             $this->prepared = true;
         }
+    }
 
-        return $this->data;
+    protected function applyTotal()
+    {
+        $this->total = $this->data->count();
+
+        $this->totaled = true;
     }
 
     /**
@@ -92,13 +141,18 @@ class Model implements Data
      */
     protected function applyFilters()
     {
+        /** @var Composer $handler */
+        $composer = $this->orchestrator->orchestrate('filter');
+
         foreach ($this->filters as $name => $setting) {
-            match(true) {
-                is_string($setting) => $this->data->where($name, '=', $setting),
-                is_array($setting) => $this->comparator->compare($this->convertArrayToFilterSetting($name, $setting), $this),
-                $setting instanceof FilterSettingInterface => $this->comparator->compare($setting, $this),
+            $setting = match(true) {
+                is_string($setting) => FilterSetting::createFromString($setting, $name),
+                is_array($setting) => FilterSetting::createFromArray($setting, $name),
+                $setting instanceof FilterSettingInterface => $setting,
                 default => throw new Exception("Type not supported: " . gettype($setting))
             };
+
+            $composer->compare($setting, $this);
         }
     }
 
@@ -107,29 +161,34 @@ class Model implements Data
      */
     protected function applyOrders()
     {
+        $arrangement = $this->orchestrator->orchestrate('order');
+
         foreach ($this->orders as $name => $setting) {
             match(true) {
                 is_string($setting) && is_numeric($name) => $this->data->orderBy($setting),
                 is_string($setting) && is_string($name) => $this->data->orderBy($name, $setting),
-                is_array($setting) => $this->arrangement->arrange($this->convertArrayToOrderSetting($name, $setting), $this),
-                $setting instanceof OrderSettingInterface => $this->arrangement->compare($setting, $this),
+                is_array($setting) => $arrangement->arrange($this->convertArrayToOrderSetting($name, $setting), $this),
+                $setting instanceof OrderSettingInterface => $arrangement->compare($setting, $this),
                 default => throw new Exception("Type not supported: " . gettype($setting))
             };
+        }
+    }
+
+    protected function applyPagination()
+    {
+        if (!empty($this->pagination)) {
+            list($start, $end) = match (true) {
+                isset($this->pagination['start']) && isset($this->pagination['end']) => [$this->pagination['start'], $this->pagination['end']],
+                default => [$this->pagination[0], $this->pagination[1]]
+            };
+
+            $this->data->skip($start)->limit($end);
         }
     }
 
     public function data(): Builder
     {
         return $this->data;
-    }
-
-    private function convertArrayToFilterSetting($name, array $setting): FilterSettingInterface
-    {
-        return new FilterSetting(
-            field: $setting['field'] ?? $name,
-            type: $setting['type'] ?? 'equals',
-            value: $setting['value'] ?? $setting
-        );
     }
 
     private function convertArrayToOrderSetting($name, array $setting): OrderSettingInterface

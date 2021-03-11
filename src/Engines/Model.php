@@ -15,7 +15,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
-class Model implements Data
+final class Model extends Base implements Data
 {
     private Builder $data;
 

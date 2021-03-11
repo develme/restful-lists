@@ -3,7 +3,6 @@
 
 namespace DevelMe\RestfulList\Engines;
 
-use Closure;
 use DevelMe\RestfulList\Contracts\Comparator\Composer;
 use DevelMe\RestfulList\Contracts\Engine\Data;
 use DevelMe\RestfulList\Contracts\Filters\Setting as FilterSettingInterface;
@@ -34,28 +33,13 @@ final class Model extends Base implements Data
      */
     private bool $prepared = false;
 
-    /**
-     * This property tracks if results have been fetched or not
-     *
-     * @var bool
-     */
-    private bool $fetched = false;
-
-    /**
-     * This property tracks if results have been totaled before prepared.
-     *
-     * @var bool
-     */
-    private bool $totaled = false;
-
     private Collection $results;
-
-    private Orchestration $orchestrator;
 
     public function __construct(Builder $data, Orchestration $orchestrator)
     {
+        parent::__construct($orchestrator);
+
         $this->data = $data;
-        $this->orchestrator = $orchestrator;
     }
 
     public function filters(array $filters): self
@@ -132,8 +116,6 @@ final class Model extends Base implements Data
     protected function applyTotal()
     {
         $this->total = $this->data->count();
-
-        $this->totaled = true;
     }
 
     /**

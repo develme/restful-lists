@@ -18,14 +18,6 @@ final class Model extends Base implements Data
 {
     private Builder $data;
 
-    private array $filters = [];
-
-    private array $orders = [];
-
-    private array $pagination = [];
-
-    private int $total;
-
     /**
      * This property tracks if filters,
      *
@@ -33,34 +25,11 @@ final class Model extends Base implements Data
      */
     private bool $prepared = false;
 
-    private Collection $results;
-
     public function __construct(Builder $data, Orchestration $orchestrator)
     {
         parent::__construct($orchestrator);
 
         $this->data = $data;
-    }
-
-    public function filters(array $filters): self
-    {
-        $this->filters = $filters;
-
-        return $this;
-    }
-
-    public function orders(array $orders): self
-    {
-        $this->orders = $orders;
-
-        return $this;
-    }
-
-    public function pagination(array $pagination): self
-    {
-        $this->pagination = $pagination;
-
-        return $this;
     }
 
     public function sql(): string
@@ -82,20 +51,6 @@ final class Model extends Base implements Data
         $this->prepare();
 
         return $this->results->count();
-    }
-
-    public function total(): int
-    {
-        $this->prepare();
-
-        return $this->total;
-    }
-
-    public function go()
-    {
-        $this->prepare();
-
-        return $this->results;
     }
 
     protected function prepare()

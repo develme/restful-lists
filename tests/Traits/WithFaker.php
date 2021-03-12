@@ -23,6 +23,11 @@ trait WithFaker
         }
     }
 
+    protected function teardownFaker(): void
+    {
+
+    }
+
     protected function faker($locale = null): Generator
     {
         return is_null($locale) ? $this->faker : $this->instantiateFaker($locale);
@@ -30,11 +35,6 @@ trait WithFaker
 
     protected function instantiateFaker($locale = null): Generator
     {
-        \Illuminate\Database\Eloquent\Factories\Factory::guessFactoryNamesUsing(function (string $modelName) {
-            $modelName =  preg_replace("/^Tests\\\\Models/", "Tests\\Factories", $modelName);
-            return $modelName.'Factory';
-        });
-
         return Factory::create($locale ?? env('faker_local', Factory::DEFAULT_LOCALE));
     }
 }

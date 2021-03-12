@@ -42,16 +42,11 @@ class FilterTest extends TestCase
             return $mocks;
         });
 
-        $this->checkFiltersAgainstEngine(
-            filters: [],
-            mocks: $mocks,
-            method: function ($engine) use ($resources) {
-                $results = $engine->go();
+        $engine = $this->instantiateEngine($mocks);
+        $results = $engine->go();
 
-                $this->assertEquals($resources->count(), $engine->count());
-                $this->assertEquals($resources->first()->name, $results->first()->name);
-            }
-        );
+        $this->assertEquals($resources->count(), $engine->count());
+        $this->assertEquals($resources->first()->name, $results->first()->name);
     }
 
     /**
@@ -131,7 +126,7 @@ class FilterTest extends TestCase
     {
         $search = $this->faker->word;
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type: "equals",
             value: $search,
             mockHandle: fn($mock) => $mock->shouldReceive('where')->with('type', '=', "$search")->once()
@@ -146,7 +141,7 @@ class FilterTest extends TestCase
     {
         $search = $this->faker->word;
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type: "not_equals",
             value: $search,
             mockHandle: fn($mock) => $mock->shouldReceive('where')->with('type', '!=', "$search")->once()
@@ -161,7 +156,7 @@ class FilterTest extends TestCase
     {
         $search = $this->faker->word;
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type: "contains",
             value: $search,
             mockHandle: fn($mock) => $mock->shouldReceive('where')->with('type', 'like', "%$search%")->once()
@@ -176,10 +171,10 @@ class FilterTest extends TestCase
     {
         $search = $this->faker->word;
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type:'starts_with',
             value: $search,
-            mockHandle: fn($mock) => $mock->shouldReceive('where')->with('type', 'like', "%$search")->once()
+            mockHandle: fn($mock) => $mock->shouldReceive('where')->with('type', 'like', "$search%")->once()
         );
     }
 
@@ -191,10 +186,10 @@ class FilterTest extends TestCase
     {
         $search = $this->faker->word;
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type: 'ends_with',
             value: $search,
-            mockHandle: fn($mock) => $mock->shouldReceive('where')->with('type', 'like', "$search%")->once()
+            mockHandle: fn($mock) => $mock->shouldReceive('where')->with('type', 'like', "%$search")->once()
         );
     }
 
@@ -206,7 +201,7 @@ class FilterTest extends TestCase
     {
         $search = $this->faker->words;
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type: 'in',
             value: $search,
             mockHandle: fn($mock) => $mock->shouldReceive('whereIn')->with('type', $search)->once()
@@ -223,7 +218,7 @@ class FilterTest extends TestCase
         $search['from'] = $start->format('Y-m-d');
         $search['to'] = $start->addDays($this->faker->numberBetween(5, 15))->format('Y-m-d');
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type: 'between',
             value: $search,
             mockHandle: function ($mock) use ($search) {
@@ -241,7 +236,7 @@ class FilterTest extends TestCase
     {
         $search = $this->faker->numberBetween(5, 10);
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type: 'less_than',
             value: $search,
             mockHandle: fn ($mock) => $mock->shouldReceive('where')->with('type', '<', $search)->once()
@@ -256,7 +251,7 @@ class FilterTest extends TestCase
     {
         $search = $this->faker->numberBetween(5, 10);
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type: 'less_than_or_equal',
             value: $search,
             mockHandle: fn ($mock) => $mock->shouldReceive('where')->with('type', '<=', $search)->once()
@@ -271,7 +266,7 @@ class FilterTest extends TestCase
     {
         $search = $this->faker->numberBetween(5, 10);
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type: 'greater_than',
             value: $search,
             mockHandle: fn ($mock) => $mock->shouldReceive('where')->with('type', '>', $search)->once()
@@ -286,7 +281,7 @@ class FilterTest extends TestCase
     {
         $search = $this->faker->numberBetween(5, 10);
 
-        $this->checkFilterType(
+        $this->checkFilterTypeAgainstMock(
             type: 'greater_than_or_equal',
             value: $search,
             mockHandle: fn ($mock) => $mock->shouldReceive('where')->with('type', '>=', $search)->once()

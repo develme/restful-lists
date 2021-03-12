@@ -8,6 +8,7 @@ use DevelMe\RestfulList\Contracts\Comparator\Composer;
 use DevelMe\RestfulList\Contracts\Orchestration;
 use DevelMe\RestfulList\Contracts\Registration;
 use DevelMe\RestfulList\Contracts\Orders\Arrangement;
+use DevelMe\RestfulList\Engines\Base;
 use Illuminate\Container\Util;
 use Illuminate\Database\Eloquent\Builder;
 use Mockery\MockInterface;
@@ -35,24 +36,32 @@ trait WithEngineParts
             throw new Exception("Engine property not configured");
         }
 
-        $mocks = [];
         $setting = $this->engine;
         $reflection = new ReflectionClass($setting['engine']);
 
-        $parameters = $reflection->getConstructor()?->getParameters();
-
-        foreach ($parameters as $dependency) {
-            $name = Util::getParameterClassName($dependency);
-
-            $dependency = new ReflectionClass($name);
-
-            $mocks[] = match (true) {
-                $dependency->implementsInterface(Orchestration::class) === true => $this->generateOrchestratorInstance($setting),
-                default => Mockery::mock($name)
-            };
-        }
+        $mocks = $this->resolveEngineDependencies($reflection->getConstructor()?->getParameters(), $setting);
 
         return $handle($mocks);
+    }
+
+    /**
+     * @param array $arguments
+     * @return Base
+     * @throws ReflectionException
+     * @throws Exception
+     */
+    protected function generateEngine(array $arguments = []): Base
+    {
+        if (!isset($this->engine)) {
+            throw new Exception("Engine property not configured");
+        }
+
+        $setting = $this->engine;
+        $reflection = new ReflectionClass($setting['engine']);
+
+        $dependencies = $this->resolveEngineDependencies($reflection->getConstructor()?->getParameters(), $setting, $arguments);
+
+        return $this->instantiateEngine($dependencies);
     }
 
     /**
@@ -135,7 +144,7 @@ trait WithEngineParts
      *
      * @throws ReflectionException
      */
-    protected function checkFilterType(string $type, mixed $value, Closure $mockHandle)
+    protected function checkFilterTypeAgainstMock(string $type, mixed $value, Closure $mockHandle)
     {
         $filter = [
             'type' => [
@@ -166,12 +175,38 @@ trait WithEngineParts
     }
 
     /**
+     * @param string $type
+     * @param \Closure $resourceHandle
+     * @param mixed $value
+     * @param mixed $search
+     * @throws ReflectionException
+     */
+    protected function checkFilterTypeAgainstResource(string $type, Closure $resourceHandle, mixed $value, mixed $search = null)
+    {
+        $filter = [
+            'type' => [
+                'field' => 'type',
+                'type' => $type,
+                'value' => $search ?? $value
+            ]
+        ];
+
+        Example::factory($this->faker->numberBetween(10, 15))->create();
+        Example::factory($this->faker->numberBetween(16, 25), ['type' => $value])->create();
+
+        $engine = $this->generateEngine(['data' => Example::query()]);
+        $resources = $resourceHandle(Example::query());
+
+        $this->assertEquals($resources->count(), $engine->filters($filter)->count());
+    }
+
+    /**
      * @param array $mocks
-     * @return object
+     * @return Base
      * @throws ReflectionException
      * @throws Exception
      */
-    protected function instantiateEngine(array $mocks): object
+    protected function instantiateEngine(array $mocks): Base
     {
         if (!isset($this->engine)) {
             throw new Exception("Engine property not configured");
@@ -179,6 +214,34 @@ trait WithEngineParts
 
         $setting = $this->engine;
 
-        return (new ReflectionClass($setting['engine']))->newInstanceArgs($mocks);
+        /** @var Base $instance */
+        $instance = (new ReflectionClass($setting['engine']))->newInstanceArgs($mocks);
+
+        return $instance;
+    }
+
+    /**
+     * @param array $parameters
+     * @param array $setting
+     * @param array|null $arguments
+     * @return array
+     * @throws ReflectionException
+     */
+    protected function resolveEngineDependencies(array $parameters, array $setting, ?array $arguments = null): array
+    {
+        $results = [];
+
+        foreach ($parameters as $parameter) {
+            $class = Util::getParameterClassName($parameter);
+            $name = $parameter->getName();
+
+            $dependency = new ReflectionClass($class);
+
+            $results[] = match (true) {
+                $dependency->implementsInterface(Orchestration::class) === true => $this->generateOrchestratorInstance($setting),
+                default => $arguments[$name] ?? Mockery::mock($class)
+            };
+        }
+        return $results;
     }
 }

@@ -30,6 +30,16 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 
     protected function tearDown(): void
     {
+        $traits = array_flip(class_uses_recursive(static::class));
+
+        if (isset($traits[WithFaker::class])) {
+            $this->teardownFaker();
+        }
+
+        if (isset($traits[WithEloquent::class])) {
+            $this->teardownEloquent();
+        }
+
         \Mockery::close();
     }
 }

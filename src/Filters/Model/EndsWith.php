@@ -20,6 +20,6 @@ class EndsWith implements Filtration
 
     private function prepValue(string $value): string
     {
-        return "$value%";
+        return "%$value";
     }
 }

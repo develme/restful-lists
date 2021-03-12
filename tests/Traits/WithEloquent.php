@@ -2,27 +2,43 @@
 
 namespace Tests\Traits;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Database\Capsule\Manager;
 use Illuminate\Container\Container;
 
 trait WithEloquent
 {
 
-    public function setupEloquent()
+    protected function setupEloquent()
     {
 
-        $capsule = new Capsule;
+        \Illuminate\Database\Eloquent\Factories\Factory::guessFactoryNamesUsing(function (string $modelName) {
+            $modelName =  preg_replace("/^Tests\\\\Models/", "Tests\\Database\\Factories", $modelName);
+            return $modelName.'Factory';
+        });
+
+        $eloquent = new Manager;
 
         $directory = getcwd();
 
-        $capsule->addConnection([
+        $eloquent->addConnection([
             'driver'    => 'sqlite',
             'host'      => 'localhost',
             'database'  => "$directory/tests/database/example.sqlite",
             'prefix'    => '',
         ]);
 
-        $capsule->setAsGlobal();
-        $capsule->bootEloquent();
+        $eloquent->setAsGlobal();
+        $eloquent->bootEloquent();
+
+        if (method_exists($this, 'migrateDatabase')) {
+            $this->migrateDatabase($eloquent);
+        }
+    }
+
+    protected function teardownEloquent(): void
+    {
+        $directory = getcwd();
+
+        file_put_contents("$directory/tests/database/example.sqlite", "");
     }
 }

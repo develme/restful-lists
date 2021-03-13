@@ -33,7 +33,7 @@ class OrderTest extends TestCase
             /** @var MockInterface $mock */
             foreach ($mocks as $mock) {
                 if ($mock instanceof Builder) {
-                    $mock->shouldReceive('orderBy')->with('type')->once();
+                    $mock->shouldReceive('orderBy')->with('type', 'asc')->once();
                     $mock->shouldReceive('orderBy')->with('status', 'desc')->once();
                     $this->mockBuilderWithResources($mock, $resources);
                 }

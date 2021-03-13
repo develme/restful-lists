@@ -100,13 +100,15 @@ final class Model extends Base implements Data
         $arrangement = $this->orchestrator->orchestrate('order');
 
         foreach ($this->orders as $name => $setting) {
-            match(true) {
-                is_string($setting) && is_numeric($name) => $this->data->orderBy($setting),
-                is_string($setting) && is_string($name) => $this->data->orderBy($name, $setting),
-                is_array($setting) => $arrangement->arrange($this->convertArrayToOrderSetting($name, $setting), $this),
-                $setting instanceof OrderSettingInterface => $arrangement->compare($setting, $this),
+            $setting = match(true) {
+                is_string($setting) && is_numeric($name) => OrderSetting::createFromString($setting),
+                is_string($setting) && is_string($name) => OrderSetting::createFromString($name, $setting),
+                is_array($setting) => OrderSetting::createFromArray($setting, $name),
+                $setting instanceof OrderSettingInterface => $setting,
                 default => throw new Exception("Type not supported: " . gettype($setting))
             };
+
+            $arrangement->arrange($setting, $this);
         }
     }
 

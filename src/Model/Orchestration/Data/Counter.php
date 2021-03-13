@@ -1,7 +1,7 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Model\Orchestration\Count;
+namespace DevelMe\RestfulList\Model\Orchestration\Data;
 
 use DevelMe\RestfulList\Contracts\Counter as CounterInterface;
 use DevelMe\RestfulList\Contracts\Engine\Data;

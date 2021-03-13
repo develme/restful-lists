@@ -1,23 +1,23 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Filters\Model;
+namespace DevelMe\RestfulList\Model\Orchestration\Filter;
 
 
 use Closure;
 use DevelMe\RestfulList\Contracts\Defaults;
 use DevelMe\RestfulList\Contracts\Filters\Filtration;
-use DevelMe\RestfulList\Filters\Model\Contains;
-use DevelMe\RestfulList\Filters\Model\Equals;
-use DevelMe\RestfulList\Filters\Model\In;
-use DevelMe\RestfulList\Filters\Model\NotEquals;
-use DevelMe\RestfulList\Filters\Model\StartsWith;
-use DevelMe\RestfulList\Filters\Model\EndsWith;
-use DevelMe\RestfulList\Filters\Model\Between;
-use DevelMe\RestfulList\Filters\Model\LessThan;
-use DevelMe\RestfulList\Filters\Model\LessThanOrEqual;
-use DevelMe\RestfulList\Filters\Model\GreaterThan;
-use DevelMe\RestfulList\Filters\Model\GreaterThanOrEqual;
+use DevelMe\RestfulList\Model\Filters\Contains;
+use DevelMe\RestfulList\Model\Filters\Equals;
+use DevelMe\RestfulList\Model\Filters\In;
+use DevelMe\RestfulList\Model\Filters\NotEquals;
+use DevelMe\RestfulList\Model\Filters\StartsWith;
+use DevelMe\RestfulList\Model\Filters\EndsWith;
+use DevelMe\RestfulList\Model\Filters\Between;
+use DevelMe\RestfulList\Model\Filters\LessThan;
+use DevelMe\RestfulList\Model\Filters\LessThanOrEqual;
+use DevelMe\RestfulList\Model\Filters\GreaterThan;
+use DevelMe\RestfulList\Model\Filters\GreaterThanOrEqual;
 
 class Composition implements Defaults
 {

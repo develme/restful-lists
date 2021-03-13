@@ -1,6 +1,6 @@
 <?php
 
-namespace DevelMe\RestfulList\Filters\Model;
+namespace DevelMe\RestfulList\Model\Orchestration\Filter;
 
 use Closure;
 use DevelMe\RestfulList\Contracts\Comparator\Composer as ComposerContract;

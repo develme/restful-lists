@@ -1,7 +1,7 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Filters\Model;
+namespace DevelMe\RestfulList\Model\Filters;
 
 
 use DevelMe\RestfulList\Contracts\Filters\Filtration;

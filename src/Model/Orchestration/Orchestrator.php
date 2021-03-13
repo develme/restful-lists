@@ -1,7 +1,7 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Orchestration\Model;
+namespace DevelMe\RestfulList\Model\Orchestration;
 
 
 use Closure;

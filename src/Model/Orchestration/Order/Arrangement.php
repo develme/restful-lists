@@ -1,7 +1,7 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Orders\Model;
+namespace DevelMe\RestfulList\Model\Orchestration\Order;
 
 
 use DevelMe\RestfulList\Contracts\Engine\Data;

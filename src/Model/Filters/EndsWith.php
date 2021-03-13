@@ -1,16 +1,17 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Filters\Model;
+namespace DevelMe\RestfulList\Model\Filters;
 
 
 use DevelMe\RestfulList\Contracts\Filters\Filtration;
 use DevelMe\RestfulList\Contracts\Filters\Setting;
+use Illuminate\Database\Eloquent\Builder;
 
-class StartsWith implements Filtration
+class EndsWith implements Filtration
 {
 
-    public function filter($data, Setting $setting)
+    public function filter($data, Setting $setting): Builder
     {
         $data->where($setting->field(), 'like', $this->prepValue((string) $setting->value()));
 
@@ -19,6 +20,6 @@ class StartsWith implements Filtration
 
     private function prepValue(string $value): string
     {
-        return "$value%";
+        return "%$value";
     }
 }

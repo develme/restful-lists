@@ -1,13 +1,13 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Orchestration\Model;
+namespace DevelMe\RestfulList\Model\Orchestration;
 
 
 use Closure;
 use DevelMe\RestfulList\Contracts\Defaults;
-use DevelMe\RestfulList\Filters\Model\Composer;
-use DevelMe\RestfulList\Orders\Model\Arrangement;
+use DevelMe\RestfulList\Model\Orchestration\Filter\Composer;
+use DevelMe\RestfulList\Model\Orchestration\Order\Arrangement;
 
 class Composition implements Defaults
 {

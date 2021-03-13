@@ -57,7 +57,6 @@ final class Model extends Base implements Data
     {
         if ($this->prepared === false) {
             $this->applyTotal();
-
             $this->applyFilters();
             $this->applyOrders();
             $this->applyPagination();
@@ -78,10 +77,8 @@ final class Model extends Base implements Data
      */
     protected function applyFilters()
     {
-        $filtration = $this->orchestrator->filter();
-
         if (!empty($this->filters)) {
-            $filtration->filter($this, $this->filters);
+            $this->orchestrator->filter()->filter($this, $this->filters);
         }
     }
 
@@ -90,10 +87,8 @@ final class Model extends Base implements Data
      */
     protected function applyOrders()
     {
-        $arrangement = $this->orchestrator->order();
-
         if (!empty($this->orders)) {
-            $arrangement->arrange($this, $this->orders);
+            $this->orchestrator->order()->arrange($this, $this->orders);
         }
     }
 
@@ -102,18 +97,8 @@ final class Model extends Base implements Data
      */
     protected function applyPagination()
     {
-        $paginator = $this->orchestrator->pagination();
-        $setting = $this->pagination;
-
-        if (!empty($setting)) {
-            $setting = match (true) {
-                !array_is_list($setting) => PaginationSetting::createFromAssociative($setting),
-                array_is_list($setting) => PaginationSetting::createFromOrdered($setting),
-                $setting instanceof PaginationSettingInterface => $setting,
-                default => throw new Exception("Type not supported: " . gettype($setting))
-            };
-
-            $paginator->paginate($setting, $this);
+        if (!empty($this->pagination)) {
+            $this->orchestrator->pagination()->paginate($this, $this->pagination);
         }
     }
 

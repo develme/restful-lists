@@ -5,7 +5,7 @@ namespace DevelMe\RestfulList\Contracts;
 
 use DevelMe\RestfulList\Contracts\Engine\Arrangement;
 use DevelMe\RestfulList\Contracts\Engine\Filtration;
-use DevelMe\RestfulList\Contracts\Pagination\Paginator;
+use DevelMe\RestfulList\Contracts\Engine\Paginator;
 
 /**
  * Interface Orchestration

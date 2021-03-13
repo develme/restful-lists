@@ -3,12 +3,21 @@
 
 namespace DevelMe\RestfulList\Model\Orchestration;
 
-
 use Closure;
 use DevelMe\RestfulList\Contracts\Orchestration;
 use DevelMe\RestfulList\Contracts\Registration;
+use DevelMe\RestfulList\Model\Orchestration\Count\Counter;
+use DevelMe\RestfulList\Model\Orchestration\EngineFacades\Arrangement;
+use DevelMe\RestfulList\Model\Orchestration\EngineFacades\Filtration;
+use DevelMe\RestfulList\Model\Orchestration\EngineFacades\Paginator;
 use ReflectionClass;
 
+/**
+ * @method Counter counter()
+ * @method Filtration filter()
+ * @method Arrangement order()
+ * @method Paginator pagination()
+ */
 class Orchestrator implements Registration, Orchestration
 {
     private Closure $compositions;

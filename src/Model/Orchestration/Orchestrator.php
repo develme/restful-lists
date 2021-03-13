@@ -3,13 +3,14 @@
 
 namespace DevelMe\RestfulList\Model\Orchestration;
 
+
 use Closure;
+use DevelMe\RestfulList\Contracts\Counter;
+use DevelMe\RestfulList\Contracts\Engine\Arrangement;
+use DevelMe\RestfulList\Contracts\Engine\Filtration;
+use DevelMe\RestfulList\Contracts\Engine\Paginator;
 use DevelMe\RestfulList\Contracts\Orchestration;
 use DevelMe\RestfulList\Contracts\Registration;
-use DevelMe\RestfulList\Model\Orchestration\Count\Counter;
-use DevelMe\RestfulList\Model\Orchestration\EngineFacades\Arrangement;
-use DevelMe\RestfulList\Model\Orchestration\EngineFacades\Filtration;
-use DevelMe\RestfulList\Model\Orchestration\EngineFacades\Paginator;
 use ReflectionClass;
 
 /**

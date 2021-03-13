@@ -1,7 +1,7 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Model\Orchestration\EngineFacades;
+namespace DevelMe\RestfulList\Engines\Facades;
 
 use DevelMe\RestfulList\Contracts\Comparator\Composer;
 use DevelMe\RestfulList\Contracts\Engine\Data;

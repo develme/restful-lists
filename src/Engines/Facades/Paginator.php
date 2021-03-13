@@ -1,8 +1,7 @@
 <?php
 
 
-namespace DevelMe\RestfulList\Model\Orchestration\EngineFacades;
-
+namespace DevelMe\RestfulList\Engines\Facades;
 
 use DevelMe\RestfulList\Contracts\Engine\Data;
 use DevelMe\RestfulList\Contracts\Pagination\Setting as PaginationSettingInterface;

@@ -6,7 +6,8 @@ namespace DevelMe\RestfulList\Model\Orchestration;
 
 use Closure;
 use DevelMe\RestfulList\Contracts\Defaults;
-use DevelMe\RestfulList\Model\Orchestration\Count\Counter;
+use DevelMe\RestfulList\Model\Orchestration\Data\Counter;
+use DevelMe\RestfulList\Model\Orchestration\Data\Result;
 use DevelMe\RestfulList\Engines\Facades\Filtration;
 use DevelMe\RestfulList\Model\Orchestration\Filter\Composer;
 use DevelMe\RestfulList\Engines\Facades\Arrangement as ArrangementFacade;
@@ -29,6 +30,7 @@ class Composition implements Defaults
             'order' => new ArrangementFacade(new Arrangement),
             'pagination' => new PaginationFacade(new Paginator),
             'counter' => new Counter,
+            'result' => new Result,
             default => throw new \Exception("Orchestrator is unable to handle: $compare")
         };
     }

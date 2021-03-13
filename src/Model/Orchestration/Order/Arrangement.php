@@ -3,7 +3,6 @@
 
 namespace DevelMe\RestfulList\Model\Orchestration\Order;
 
-
 use DevelMe\RestfulList\Contracts\Engine\Data;
 use DevelMe\RestfulList\Contracts\Orders\Arrangement as ArrangementContract;
 use DevelMe\RestfulList\Contracts\Orders\Setting;

@@ -50,7 +50,7 @@ final class Model extends Base implements Data
     {
         $this->prepare();
 
-        return $this->results->count();
+        return $this->orchestrator->counter()->count($this);
     }
 
     protected function prepare()

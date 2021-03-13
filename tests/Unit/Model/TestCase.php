@@ -19,9 +19,10 @@ abstract class TestCase extends \Tests\TestCase
         'orchestrator' => Orchestrator::class,
     ];
 
-    protected function mockBuilderWithResources(Builder $mock, Collection $resources): void
+    protected function mockBuilderWithResources(Builder $mock, Collection $resources, ?array $counts = null): void
     {
-        $mock->shouldReceive('count')->andReturn($resources->count());
+        $counts = $counts ?? [$resources->count()];
+        $mock->shouldReceive('count')->andReturn(...$counts);
         $mock->shouldReceive('get')->andReturn($resources);
     }
 }

@@ -6,10 +6,12 @@ namespace DevelMe\RestfulList\Engines;
 use DevelMe\RestfulList\Contracts\Comparator\Composer;
 use DevelMe\RestfulList\Contracts\Engine\Data;
 use DevelMe\RestfulList\Contracts\Filters\Setting as FilterSettingInterface;
-use DevelMe\RestfulList\Contracts\Orchestration;
 use DevelMe\RestfulList\Contracts\Orders\Setting as OrderSettingInterface;
+use DevelMe\RestfulList\Contracts\Pagination\Setting as PaginationSettingInterface;
+use DevelMe\RestfulList\Contracts\Orchestration;
 use DevelMe\RestfulList\Filters\Setting as FilterSetting;
 use DevelMe\RestfulList\Orders\Setting as OrderSetting;
+use DevelMe\RestfulList\Pagination\Setting as PaginationSetting;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -112,28 +114,28 @@ final class Model extends Base implements Data
         }
     }
 
+    /**
+     * @throws Exception
+     */
     protected function applyPagination()
     {
-        if (!empty($this->pagination)) {
-            list($start, $end) = match (true) {
-                isset($this->pagination['start']) && isset($this->pagination['end']) => [$this->pagination['start'], $this->pagination['end']],
-                default => [$this->pagination[0], $this->pagination[1]]
+        $paginator = $this->orchestrator->orchestrate('pagination');
+        $setting = $this->pagination;
+
+        if (!empty($setting)) {
+            $setting = match (true) {
+                !array_is_list($setting) => PaginationSetting::createFromAssociative($setting),
+                array_is_list($setting) => PaginationSetting::createFromOrdered($setting),
+                $setting instanceof PaginationSettingInterface => $setting,
+                default => throw new Exception("Type not supported: " . gettype($setting))
             };
 
-            $this->data->skip($start)->limit($end);
+            $paginator->paginate($setting, $this);
         }
     }
 
     public function data(): Builder
     {
         return $this->data;
-    }
-
-    private function convertArrayToOrderSetting($name, array $setting): OrderSettingInterface
-    {
-        return new OrderSetting(
-            field: $setting['field'] ?? $name,
-            direction: $setting['direction'] ?? 'asc',
-        );
     }
 }

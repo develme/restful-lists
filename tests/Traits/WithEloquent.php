@@ -10,12 +10,6 @@ trait WithEloquent
 
     protected function setupEloquent()
     {
-
-        \Illuminate\Database\Eloquent\Factories\Factory::guessFactoryNamesUsing(function (string $modelName) {
-            $modelName =  preg_replace("/^Tests\\\\Models/", "Tests\\Database\\Factories", $modelName);
-            return $modelName.'Factory';
-        });
-
         $eloquent = new Manager;
 
         $directory = getcwd();

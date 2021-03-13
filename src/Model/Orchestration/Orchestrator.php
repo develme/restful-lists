@@ -9,6 +9,7 @@ use DevelMe\RestfulList\Contracts\Counter;
 use DevelMe\RestfulList\Contracts\Engine\Arrangement;
 use DevelMe\RestfulList\Contracts\Engine\Filtration;
 use DevelMe\RestfulList\Contracts\Engine\Paginator;
+use DevelMe\RestfulList\Contracts\Engine\Result;
 use DevelMe\RestfulList\Contracts\Orchestration;
 use DevelMe\RestfulList\Contracts\Registration;
 use ReflectionClass;
@@ -18,6 +19,7 @@ use ReflectionClass;
  * @method Filtration filter()
  * @method Arrangement order()
  * @method Paginator pagination()
+ * @method Result result()
  */
 class Orchestrator implements Registration, Orchestration
 {

@@ -20,6 +20,11 @@ class Orchestrator implements Registration, Orchestration
         $this->compositions = $compositions ?? $this->defaults();
     }
 
+    public function __call(string $name, array $arguments)
+    {
+        return $this->orchestrate($name);
+    }
+
     public function orchestrate(string $ask): mixed
     {
         $compositions = $this->compositions;

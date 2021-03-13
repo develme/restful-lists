@@ -3,7 +3,6 @@
 
 namespace DevelMe\RestfulList\Engines;
 
-use DevelMe\RestfulList\Contracts\Comparator\Composer;
 use DevelMe\RestfulList\Contracts\Engine\Data;
 use DevelMe\RestfulList\Contracts\Filters\Setting as FilterSettingInterface;
 use DevelMe\RestfulList\Contracts\Orders\Setting as OrderSettingInterface;
@@ -71,7 +70,7 @@ final class Model extends Base implements Data
 
     protected function applyTotal()
     {
-        $this->total = $this->data->count();
+        $this->total = $this->orchestrator->counter()->count($this);
     }
 
     /**
@@ -79,18 +78,10 @@ final class Model extends Base implements Data
      */
     protected function applyFilters()
     {
-        /** @var Composer $handler */
-        $composer = $this->orchestrator->orchestrate('filter');
+        $filtration = $this->orchestrator->filter();
 
-        foreach ($this->filters as $name => $setting) {
-            $setting = match(true) {
-                is_string($setting) => FilterSetting::createFromString($setting, $name),
-                is_array($setting) => FilterSetting::createFromArray($setting, $name),
-                $setting instanceof FilterSettingInterface => $setting,
-                default => throw new Exception("Type not supported: " . gettype($setting))
-            };
-
-            $composer->compare($setting, $this);
+        if (!empty($this->filters)) {
+            $filtration->filter($this, $this->filters);
         }
     }
 
@@ -99,18 +90,10 @@ final class Model extends Base implements Data
      */
     protected function applyOrders()
     {
-        $arrangement = $this->orchestrator->orchestrate('order');
+        $arrangement = $this->orchestrator->order();
 
-        foreach ($this->orders as $name => $setting) {
-            $setting = match(true) {
-                is_string($setting) && is_numeric($name) => OrderSetting::createFromString($setting),
-                is_string($setting) && is_string($name) => OrderSetting::createFromString($name, $setting),
-                is_array($setting) => OrderSetting::createFromArray($setting, $name),
-                $setting instanceof OrderSettingInterface => $setting,
-                default => throw new Exception("Type not supported: " . gettype($setting))
-            };
-
-            $arrangement->arrange($setting, $this);
+        if (!empty($this->orders)) {
+            $arrangement->arrange($this, $this->orders);
         }
     }
 
@@ -119,7 +102,7 @@ final class Model extends Base implements Data
      */
     protected function applyPagination()
     {
-        $paginator = $this->orchestrator->orchestrate('pagination');
+        $paginator = $this->orchestrator->pagination();
         $setting = $this->pagination;
 
         if (!empty($setting)) {

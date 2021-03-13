@@ -34,7 +34,7 @@ class Setting implements SettingContract
     {
         return new static(
             field: $setting['field'] ?? $name,
-            type: $setting['type'] ?? 'equals',
+            type: $setting['type'] ?? static::$defaultType,
             value: $setting['value'] ?? $setting
         );
     }

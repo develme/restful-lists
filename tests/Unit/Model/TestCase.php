@@ -5,7 +5,7 @@ namespace Tests\Unit\Model;
 
 
 use DevelMe\RestfulList\Engines\Model as ModelEngine;
-use DevelMe\RestfulList\Orchestration\Model\Orchestrator;
+use DevelMe\RestfulList\Model\Orchestration\Orchestrator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Tests\Traits\WithEngineParts;

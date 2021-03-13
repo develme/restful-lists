@@ -4,7 +4,7 @@
 namespace Tests\Feature\Model;
 
 use DevelMe\RestfulList\Engines\Model as ModelEngine;
-use DevelMe\RestfulList\Orchestration\Model\Orchestrator;
+use DevelMe\RestfulList\Model\Orchestration\Orchestrator;
 use Illuminate\Database\Capsule\Manager;
 use Illuminate\Database\Schema\Blueprint;
 use Tests\Traits\WithEloquent;

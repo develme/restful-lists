@@ -4,6 +4,7 @@
 namespace Tests\Feature\Model\Engine;
 
 use ReflectionException;
+use Tests\Contracts\ChecksOrderSupport;
 use Tests\Feature\Model\TestCase;
 use Tests\Models\Example;
 
@@ -14,13 +15,13 @@ use Tests\Models\Example;
  * @group Order
  * @group Engine
  */
-class OrderTest extends TestCase
+class OrderTest extends TestCase implements ChecksOrderSupport
 {
     /**
      * @test
      * @throws ReflectionException
      */
-    public function it_has_simplified_ordering()
+    public function it_has_simplified_ordering(): void
     {
         $orders = ['type', 'status' => 'desc'];
 
@@ -38,7 +39,7 @@ class OrderTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_has_complex_ordering()
+    public function it_has_complex_ordering(): void
     {
         $orders = [
             'type' => [

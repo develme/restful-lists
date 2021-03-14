@@ -77,6 +77,11 @@ abstract class Base implements Data
         return $this->data;
     }
 
+    public function setData($data)
+    {
+        $this->data = $data;
+    }
+
     protected function prepare()
     {
         if ($this->prepared === false) {
@@ -85,7 +90,7 @@ abstract class Base implements Data
             $this->applyOrders();
             $this->applyPagination();
 
-            $this->results = $this->data->get();
+            $this->results = $this->orchestrator->result()->get($this);
 
             $this->prepared = true;
         }

@@ -3,7 +3,7 @@
 
 namespace Tests\Feature\Model;
 
-use DevelMe\RestfulList\Engines\Model as ModelEngine;
+use DevelMe\RestfulList\Engines\Model;
 use DevelMe\RestfulList\Model\Orchestration\Orchestrator;
 use Illuminate\Database\Capsule\Manager;
 use Illuminate\Database\Schema\Blueprint;
@@ -16,7 +16,7 @@ class TestCase extends \Tests\TestCase
     use WithEngineParts, WithFaker, WithEloquent;
 
     protected array $engine = [
-        'engine' => ModelEngine::class,
+        'engine' => Model::class,
         'orchestrator' => Orchestrator::class,
     ];
 

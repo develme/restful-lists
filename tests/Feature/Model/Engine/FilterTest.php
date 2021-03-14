@@ -33,10 +33,10 @@ class FilterTest extends TestCase implements ChecksFilterSupport
         Example::factory($this->faker->numberBetween(10, 15))->closed()->create();
         Example::factory($this->faker->numberBetween(10, 15))->open()->create();
 
-        $example = Example::where('type', 'Open')->get();
+        $resources = Example::where('type', 'Open')->get();
         $engine = $this->generateEngine(['data' => Example::query()]);
 
-        $this->assertEquals($example->count(), $engine->filters($filters)->count());
+        $this->assertEquals($resources->count(), $engine->filters($filters)->count());
     }
 
     /**
@@ -61,10 +61,10 @@ class FilterTest extends TestCase implements ChecksFilterSupport
         Example::factory($this->faker->numberBetween(10, 15))->closed()->create();
         Example::factory($this->faker->numberBetween(10, 15))->open()->create();
 
-        $example = Example::where('type', '!=', 'Closed')->where('email', 'like', '%example%')->get();
+        $resources = Example::where('type', '!=', 'Closed')->where('email', 'like', '%example%')->get();
         $engine = $this->generateEngine(['data' => Example::query()]);
 
-        $this->assertEquals($example->count(), $engine->filters($filters)->count());
+        $this->assertEquals($resources->count(), $engine->filters($filters)->count());
     }
 
     /**
@@ -240,9 +240,9 @@ class FilterTest extends TestCase implements ChecksFilterSupport
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_greater_tha_or_equal(): void
+    public function it_filters_greater_than_or_equal(): void
     {
-        $search = $this->faker->numberBetween(5, 102);
+        $search = $this->faker->numberBetween(5, 12);
         $value = $this->faker->numberBetween(8, 15);
 
         $this->checkFilterTypeAgainstResource(

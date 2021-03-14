@@ -3,10 +3,10 @@
 
 namespace DevelMe\RestfulList\Engines;
 
-
+use DevelMe\RestfulList\Contracts\Engine\Data;
 use DevelMe\RestfulList\Contracts\Orchestration;
 
-abstract class Base
+abstract class Base implements Data
 {
     protected Orchestration $orchestrator;
 
@@ -19,6 +19,11 @@ abstract class Base
     protected int $total;
 
     protected mixed $results;
+
+    /**
+     * This property tracks if totals, filters, orders, pagination, and results have been fetched
+     */
+    protected bool $prepared = false;
 
     public function __construct(Orchestration $orchestrator)
     {
@@ -53,6 +58,13 @@ abstract class Base
         return $this->total;
     }
 
+    public function count(): int
+    {
+        $this->prepare();
+
+        return $this->orchestrator->counter()->count($this);
+    }
+
     public function go()
     {
         $this->prepare();
@@ -60,6 +72,48 @@ abstract class Base
         return $this->results;
     }
 
+    public function data()
+    {
+        return $this->data;
+    }
 
-    abstract protected function prepare();
+    protected function prepare()
+    {
+        if ($this->prepared === false) {
+            $this->applyTotal();
+            $this->applyFilters();
+            $this->applyOrders();
+            $this->applyPagination();
+
+            $this->results = $this->data->get();
+
+            $this->prepared = true;
+        }
+    }
+
+    protected function applyTotal()
+    {
+        $this->total = $this->orchestrator->counter()->count($this);
+    }
+
+    protected function applyFilters()
+    {
+        if (!empty($this->filters)) {
+            $this->orchestrator->filter()->filter($this, $this->filters);
+        }
+    }
+
+    protected function applyOrders()
+    {
+        if (!empty($this->orders)) {
+            $this->orchestrator->order()->arrange($this, $this->orders);
+        }
+    }
+
+    protected function applyPagination()
+    {
+        if (!empty($this->pagination)) {
+            $this->orchestrator->pagination()->paginate($this, $this->pagination);
+        }
+    }
 }

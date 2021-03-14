@@ -32,6 +32,8 @@ class OrderTest extends TestCase implements ChecksOrderSupport
         $results = $engine->orders($orders)->go();
 
 
+        $this->assertEquals($resources->first()->type, $results->first()->type);
+        $this->assertEquals($resources->last()->type, $results->last()->type);
         $this->assertEquals($resources->first()->name, $results->first()->name);
         $this->assertEquals($resources->last()->name, $results->last()->name);
     }
@@ -59,6 +61,8 @@ class OrderTest extends TestCase implements ChecksOrderSupport
         $results = $engine->orders($orders)->go();
 
         $this->assertEquals($resources->first()->type, $results->first()->type);
-        $this->assertEquals($resources->last()->status, $results->last()->stauts);
+        $this->assertEquals($resources->last()->type, $results->last()->type);
+        $this->assertEquals($resources->first()->name, $results->first()->name);
+        $this->assertEquals($resources->last()->name, $results->last()->name);
     }
 }

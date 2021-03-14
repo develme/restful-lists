@@ -13,7 +13,8 @@
     "require": {
         "php": ">=8.0",
         "illuminate/database": "^8.0",
-        "nesbot/carbon": "^2.45"
+        "nesbot/carbon": "^2.45",
+        "illuminate/http": "^8.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5",

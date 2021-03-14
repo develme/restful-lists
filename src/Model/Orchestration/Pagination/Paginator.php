@@ -14,6 +14,6 @@ class Paginator implements \DevelMe\RestfulList\Contracts\Pagination\Paginator
     {
         $data = $data->data();
 
-        return $data->skip($setting->start())->limit($setting->end());
+        $data->skip($setting->start())->limit($setting->end());
     }
 }

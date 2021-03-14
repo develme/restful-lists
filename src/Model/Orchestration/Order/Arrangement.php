@@ -12,6 +12,6 @@ class Arrangement implements ArrangementContract
 
     public function arrange(Setting $setting, Data $data)
     {
-        return $data->data()->orderBy($setting->field(), $setting->direction());
+        $data->data()->orderBy($setting->field(), $setting->direction());
     }
 }

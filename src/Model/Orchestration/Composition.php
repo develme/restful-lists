@@ -14,24 +14,28 @@ use DevelMe\RestfulList\Engines\Facades\Arrangement as ArrangementFacade;
 use DevelMe\RestfulList\Model\Orchestration\Order\Arrangement;
 use DevelMe\RestfulList\Model\Orchestration\Pagination\Paginator;
 use DevelMe\RestfulList\Engines\Facades\Paginator as PaginationFacade;
+use Exception;
+use ReflectionException;
 
 class Composition implements Defaults
 {
     /**
      * @return Closure
+     * @throws ReflectionException
+     * @throws Exception
      */
     public function defaults(): Closure
     {
         $composer = new Composer;
         $composer->register();
 
-        return fn($compare) => match($compare) {
+        return fn($compare) => match ($compare) {
             'filter' => new Filtration($composer),
             'order' => new ArrangementFacade(new Arrangement),
             'pagination' => new PaginationFacade(new Paginator),
             'counter' => new Counter,
             'result' => new Result,
-            default => throw new \Exception("Orchestrator is unable to handle: $compare")
+            default => throw new Exception("Unable to handle: $compare")
         };
     }
 }

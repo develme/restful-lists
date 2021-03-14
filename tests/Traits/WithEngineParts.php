@@ -176,12 +176,19 @@ trait WithEngineParts
 
     /**
      * @param string $type
-     * @param \Closure $resourceHandle
+     * @param Closure $resourceHandle
      * @param mixed $value
      * @param mixed $search
+     * @param Closure|null $resourceGenerator
      * @throws ReflectionException
      */
-    protected function checkFilterTypeAgainstResource(string $type, Closure $resourceHandle, mixed $value, mixed $search = null)
+    protected function checkFilterTypeAgainstResource(
+        string $type,
+        Closure $resourceHandle,
+        mixed $value,
+        mixed $search = null,
+        ?Closure $resourceGenerator = null,
+    )
     {
         $filter = [
             'type' => [
@@ -191,11 +198,17 @@ trait WithEngineParts
             ]
         ];
 
-        Example::factory($this->faker->numberBetween(10, 15))->create();
-        Example::factory($this->faker->numberBetween(16, 25), ['type' => $value])->create();
+        $createResources = $resourceGenerator ?? function ($type) {
+            Example::factory($this->faker->numberBetween(10, 15))->create();
+            Example::factory($this->faker->numberBetween(16, 25), ['type' => $type])->create();
 
-        $engine = $this->generateEngine(['data' => Example::query()]);
-        $resources = $resourceHandle(Example::query());
+            return Example::query();
+        };
+
+        $data = $createResources($value);
+
+        $engine = $this->generateEngine(['data' => $data]);
+        $resources = $resourceHandle($data);
 
         $this->assertEquals($resources->count(), $engine->filters($filter)->count());
     }

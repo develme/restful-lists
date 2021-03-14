@@ -5,7 +5,7 @@ namespace DevelMe\RestfulList\Engines\Facades;
 
 use DevelMe\RestfulList\Contracts\Engine\Data;
 use DevelMe\RestfulList\Contracts\Orders\Setting as OrderSettingInterface;
-use DevelMe\RestfulList\Model\Orchestration\Order\Arrangement as SingleArrangement;
+use DevelMe\RestfulList\Contracts\Orders\Arrangement as SingleArrangement;
 use DevelMe\RestfulList\Orders\Setting as OrderSetting;
 use Exception;
 

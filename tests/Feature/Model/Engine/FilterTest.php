@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use ReflectionException;
+use Tests\Contracts\ChecksFilterSupport;
 use Tests\Feature\Model\TestCase;
 use Tests\Models\Example;
 use Closure;
@@ -19,13 +20,13 @@ use Closure;
  * @group Model
  * @group Engine
  */
-class FilterTest extends TestCase
+class FilterTest extends TestCase implements ChecksFilterSupport
 {
     /**
      * @test
      * @throws Exception
      */
-    public function it_has_simplified_filtering()
+    public function it_has_simplified_filtering(): void
     {
         $filters = ['type' => 'Open'];
 
@@ -42,7 +43,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_has_complex_filtering()
+    public function it_has_complex_filtering(): void
     {
         $filters = [
             'type' => [
@@ -70,7 +71,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_equals()
+    public function it_filters_equals(): void
     {
         $search = $this->faker->word;
 
@@ -85,7 +86,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_not_equals()
+    public function it_filters_not_equals(): void
     {
         $search = $this->faker->word;
 
@@ -100,7 +101,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_contains()
+    public function it_filters_contains(): void
     {
         $search = $this->faker->word;
         $value = $this->faker->word . " " . $search . " " . $this->faker->word;
@@ -117,7 +118,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_starts_with()
+    public function it_filters_starts_with(): void
     {
         $search = $this->faker->word;
         $value = $search . " " . $this->faker->word;
@@ -134,7 +135,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_ends_with()
+    public function it_filters_ends_with(): void
     {
         $search = $this->faker->word;
         $value = $this->faker->word . " " . $search;
@@ -151,7 +152,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_in()
+    public function it_filters_in(): void
     {
         $value = $this->faker->word;
         $search = [$value];
@@ -168,7 +169,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_between()
+    public function it_filters_between(): void
     {
         $date = $this->faker->dateTime;
         $start = Carbon::parse($date);
@@ -188,7 +189,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_less_than()
+    public function it_filters_less_than(): void
     {
         $search = $this->faker->numberBetween(11, 15);
         $value = $this->faker->numberBetween(5, 10);
@@ -205,7 +206,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_less_than_or_equal()
+    public function it_filters_less_than_or_equal(): void
     {
         $search = $this->faker->numberBetween(8, 15);
         $value = $this->faker->numberBetween(5, 12);
@@ -222,7 +223,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_greater_than()
+    public function it_filters_greater_than(): void
     {
         $search = $this->faker->numberBetween(5, 10);
         $value = $this->faker->numberBetween(11, 15);
@@ -239,7 +240,7 @@ class FilterTest extends TestCase
      * @test
      * @throws ReflectionException
      */
-    public function it_filters_greater_tha_or_equal()
+    public function it_filters_greater_tha_or_equal(): void
     {
         $search = $this->faker->numberBetween(5, 102);
         $value = $this->faker->numberBetween(8, 15);

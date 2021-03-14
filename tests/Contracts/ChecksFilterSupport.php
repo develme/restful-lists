@@ -68,5 +68,5 @@ interface ChecksFilterSupport
     /**
      * @test
      */
-    public function it_filters_greater_tha_or_equal(): void;
+    public function it_filters_greater_than_or_equal(): void;
 }

@@ -11,6 +11,6 @@ class Counter implements CounterInterface
 
     public function count(Data $data): int
     {
-        return $data->data()->count();
+        return method_exists($data, 'prepared') && $data->prepared() ? $data->go()->count() : $data->data()->count();
     }
 }

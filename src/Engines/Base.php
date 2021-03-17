@@ -96,6 +96,11 @@ abstract class Base implements Data
         }
     }
 
+    public function prepared(): bool
+    {
+        return $this->prepared;
+    }
+
     protected function applyTotal()
     {
         $this->total = $this->orchestrator->counter()->count($this);

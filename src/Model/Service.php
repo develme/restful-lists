@@ -6,9 +6,12 @@ namespace DevelMe\RestfulList\Model;
 use DevelMe\RestfulList\Engines\Base;
 use DevelMe\RestfulList\Engines\Model as Engine;
 use DevelMe\RestfulList\Model\Orchestration\Orchestrator;
+use DevelMe\RestfulList\Model\Service\Resource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Symfony\Component\HttpFoundation\Response;
 
 class Service
 {
@@ -18,7 +21,9 @@ class Service
 
     protected static string $sortColumn = 'created_at';
 
-    private Request $request;
+    protected Request $request;
+
+    protected string|JsonResource $resource;
 
     public function __construct(Request $request)
     {
@@ -32,16 +37,27 @@ class Service
         return $this;
     }
 
+    public function resource(string|JsonResource $resource): static
+    {
+        $this->resource = $resource;
 
-    public function json(): string
+        return $this;
+    }
+
+
+    public function json(): Response
     {
         $engine = $this->prepareEngine();
 
-        return json_encode([
-            'resources' => $engine->go()->toArray(),
-            'total' => $engine->total(),
-            'count' => $engine->count(),
-        ]);
+        $results = $engine->go()->take(1);
+
+        if (!empty($this->resource)) {
+            $resource = new Resource($this->resource::collection($results));
+        } else {
+            $resource = new Resource($results);
+        }
+
+        return $resource->setEngine($engine)->response();
     }
 
     protected function prepareEngine(): Base

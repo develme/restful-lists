@@ -12,6 +12,12 @@ trait WithJsonTesting
         $this->assertEquals($expect, $this->json($json, $path), "Not equal at path: $path");
     }
 
+    protected function assertJsonEmpty(string $json, string $path)
+    {
+        $this->assertEmpty($this->json($json, $path), "Not empty at path: $path");
+    }
+
+
     protected function json(string $json, $key = null): mixed
     {
         $decoded = json_decode($json);

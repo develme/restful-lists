@@ -6,6 +6,7 @@ namespace Tests\Feature\Model;
 use Carbon\Carbon;
 use Tests\Models\Example;
 use DevelMe\RestfulList\Model\Service;
+use Tests\Resources\ExampleResource;
 use Tests\Traits\WithHttpRequests;
 use Tests\Traits\WithJsonTesting;
 
@@ -30,8 +31,9 @@ class ServiceTest extends TestCase
         $service = new Service($this->instantiateRequest(""));
 
         $resource = Example::orderBy('created_at', 'desc')->first();
+        $response = $this->parseResponse($service->model(new Example)->json())['content'];
 
-        $this->assertJsonPath($service->model(new Example)->json(), "resources.0.name", $resource->name);
+        $this->assertJsonPath($response, "data.0.name", $resource->name);
     }
 
     /**
@@ -66,11 +68,11 @@ class ServiceTest extends TestCase
         $request = $this->instantiateRequest($this->constructUrlFromParams($params));
         $service = new Service($request);
 
-        $results = $service->model(new Example)->json();
+        $response = $this->parseResponse($service->model(new Example)->json())['content'];
 
-        $this->assertJsonPath($results, "resources.0.name", $resources->first()->name);
-        $this->assertJsonPath($results, "total", Example::count());
-        $this->assertJsonPath($results, "count", $resources->count());
+        $this->assertJsonPath($response, "data.0.name", $resources->first()->name);
+        $this->assertJsonPath($response, "total", Example::count());
+        $this->assertJsonPath($response, "count", $resources->count());
 
     }
 
@@ -94,8 +96,9 @@ class ServiceTest extends TestCase
         $resource = Example::orderBy('name', 'desc')->first();
         $request = $this->instantiateRequest($this->constructUrlFromParams($params));
         $service = new Service($request);
+        $response = $this->parseResponse($service->model(new Example)->json())['content'];
 
-        $this->assertJsonPath($service->model(new Example)->json(), "resources.0.name", $resource->name);
+        $this->assertJsonPath($response, "data.0.name", $resource->name);
 
     }
 
@@ -118,11 +121,30 @@ class ServiceTest extends TestCase
         $request = $this->instantiateRequest($this->constructUrlFromParams($params));
         $service = new Service($request);
 
-        $results = $service->model(new Example)->json();
+        $response = $this->parseResponse($service->model(new Example)->json())['content'];
 
-        $this->assertJsonPath($results, "resources.0.name", $resources->first()->name);
-        $this->assertJsonPath($results, "total", Example::count());
-        $this->assertJsonPath($results, "count", $resources->count());
+        $this->assertJsonPath($response, "data.0.name", $resources->first()->name);
+        $this->assertJsonPath($response, "total", Example::count());
+        $this->assertJsonPath($response, "count", $resources->count());
+
+    }
+
+    /**
+     * @test
+     */
+    public function it_utilizes_json_resources()
+    {
+        Example::factory($this->faker->numberBetween(20, 30))->closed()->create();
+        Example::factory($this->faker->numberBetween(20, 30), ['created_at' => Carbon::now()->subDays(5)])->open()->create();
+
+        $request = $this->instantiateRequest($this->constructUrlFromParams([]));
+        $service = new Service($request);
+        $resources = Example::orderBy('created_at', 'desc')->first();
+
+        $response = $this->parseResponse($service->model(Example::query())->resource(ExampleResource::class)->json())['content'];
+
+        $this->assertJsonPath($response, "data.0.name", $resources->first()->name);
+        $this->assertJsonEmpty($response, "data.0.email");
 
     }
 }

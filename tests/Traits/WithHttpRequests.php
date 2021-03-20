@@ -6,6 +6,8 @@ namespace Tests\Traits;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\Response;
+use Tests\Models\Example;
+use Tests\Resources\ExampleResource;
 
 trait WithHttpRequests
 {
@@ -13,7 +15,7 @@ trait WithHttpRequests
     {
         $request = SymfonyRequest::create($url, $method, [], [], [], [], '');
         $result = Request::createFromBase($request);
-        
+
         $this->container->instance('request', $result);
 
         return $result;
@@ -31,5 +33,10 @@ trait WithHttpRequests
     protected function parseResponse(Response $response): array
     {
         return ['headers' => $response->headers, 'content' => $response->getContent()];
+    }
+
+    protected function getJsonFromResponse(Response $response): string
+    {
+        return data_get($this->parseResponse($response), 'content', '{}');
     }
 }

@@ -22,6 +22,7 @@ abstract class TestCase extends \Tests\TestCase
     protected function mockBuilderWithResources(Builder $mock, Collection $resources, ?array $counts = null): void
     {
         $counts = $counts ?? [$resources->count()];
+
         $mock->shouldReceive('count')->andReturn(...$counts);
         $mock->shouldReceive('get')->andReturn($resources);
     }

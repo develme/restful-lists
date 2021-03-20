@@ -17,11 +17,16 @@ trait WithJsonTesting
         $this->assertEmpty($this->json($json, $path), "Not empty at path: $path");
     }
 
+    protected function assertJsonNotEmpty(string $json, string $path)
+    {
+        $this->assertNotEmpty($this->json($json, $path), "Empty at path: $path");
+    }
 
-    protected function json(string $json, $key = null): mixed
+
+    protected function json(string $json, $key = null, $default = null): mixed
     {
         $decoded = json_decode($json);
 
-        return data_get($decoded, $key);
+        return data_get($decoded, $key, $default);
     }
 }

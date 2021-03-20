@@ -4,6 +4,7 @@
 namespace Tests\Feature\Model;
 
 use Carbon\Carbon;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Tests\Models\Example;
 use DevelMe\RestfulList\Model\Service;
 use Tests\Resources\ExampleResource;
@@ -28,10 +29,8 @@ class ServiceTest extends TestCase
         Example::factory($this->faker->numberBetween(5, 15), ['created_at' => Carbon::now()->subDays(5)])->closed()->create();
         Example::factory($this->faker->numberBetween(5, 15))->open()->create();
 
-        $service = new Service($this->instantiateRequest(""));
-
         $resource = Example::orderBy('created_at', 'desc')->first();
-        $response = $this->parseResponse($service->model(new Example)->json())['content'];
+        $response = $this->fetchResponseWithParams();
 
         $this->assertJsonPath($response, "data.0.name", $resource->name);
     }
@@ -52,28 +51,14 @@ class ServiceTest extends TestCase
                     'value' => 'Open'
                 ],
             ],
-//            'orders' => [
-//                'name' => [
-//                    'field' => 'name',
-//                    'direction' => 'desc',
-//                ],
-//            ],
-//            'pagination' => [
-//                'start' => 100,
-//                'end' => 200,
-//            ],
         ];
 
         $resources = Example::where('type', 'Open')->orderBy('created_at', 'desc')->get();
-        $request = $this->instantiateRequest($this->constructUrlFromParams($params));
-        $service = new Service($request);
-
-        $response = $this->parseResponse($service->model(new Example)->json())['content'];
+        $response = $this->fetchResponseWithParams($params);
 
         $this->assertJsonPath($response, "data.0.name", $resources->first()->name);
-        $this->assertJsonPath($response, "total", Example::count());
-        $this->assertJsonPath($response, "count", $resources->count());
-
+        $this->assertJsonPath($response, "meta.total", Example::count());
+        $this->assertJsonPath($response, "meta.count", $resources->count());
     }
 
     /**
@@ -94,12 +79,9 @@ class ServiceTest extends TestCase
         ];
 
         $resource = Example::orderBy('name', 'desc')->first();
-        $request = $this->instantiateRequest($this->constructUrlFromParams($params));
-        $service = new Service($request);
-        $response = $this->parseResponse($service->model(new Example)->json())['content'];
+        $response = $this->fetchResponseWithParams($params);
 
         $this->assertJsonPath($response, "data.0.name", $resource->name);
-
     }
 
     /**
@@ -108,25 +90,66 @@ class ServiceTest extends TestCase
     public function it_parses_pagination_requests_params()
     {
         Example::factory($this->faker->numberBetween(20, 30))->closed()->create();
-        Example::factory($this->faker->numberBetween(20, 30), ['created_at' => Carbon::now()->subDays(5)])->open()->create();
+        Example::factory(100, ['created_at' => Carbon::now()->subDays(5)])->open()->create();
 
         $params = [
             'pagination' => [
-                'start' => 10,
-                'end' => 20,
+                'page' => 4,
+                'size' => 20,
             ],
         ];
 
-        $resources = Example::orderBy('created_at', 'desc')->skip(10)->limit(20)->get();
-        $request = $this->instantiateRequest($this->constructUrlFromParams($params));
-        $service = new Service($request);
-
-        $response = $this->parseResponse($service->model(new Example)->json())['content'];
+        $resources = Example::orderBy('created_at', 'desc')->skip(60)->limit(20)->get();
+        $response = $this->fetchResponseWithParams($params);
 
         $this->assertJsonPath($response, "data.0.name", $resources->first()->name);
-        $this->assertJsonPath($response, "total", Example::count());
-        $this->assertJsonPath($response, "count", $resources->count());
+        $this->assertJsonPath($response, "data.19.name", $resources->last()->name);
+        $this->assertJsonPath($response, "meta.total", Example::count());
+        $this->assertJsonPath($response, "meta.count", $resources->count());
+        $this->assertJsonPath($response, "meta.count", $params['pagination']['size']);
+    }
 
+    /**
+     * @test
+     */
+    public function it_provides_pagination_links_for_next_page()
+    {
+        Example::factory($this->faker->numberBetween(50, 100))->closed()->create();
+        Example::factory($this->faker->numberBetween(50, 100), ['created_at' => Carbon::now()->subDays(5)])->open()->create();
+
+        $page = 1;
+        $size = 20;
+        $params = [
+            'pagination' => [
+                'page' => $page,
+                'size' => $size,
+            ],
+        ];
+
+        $total = Example::count();
+        $request = $this->instantiateRequest($this->constructUrlFromParams($params));
+
+        do {
+            $service = new Service($request);
+            $service->model(Example::query());
+
+            $response = $this->getJsonFromResponse($service->json());
+
+            $this->assertJsonNotEmpty($response, "meta.pagination.current");
+            $this->assertJsonPath($response, "meta.total", $total);
+
+            $next = $this->json($response, 'meta.pagination.urls.next');
+
+            if (empty($next)) {
+                break;
+            } else {
+                $this->assertJsonPath($response, 'meta.count', $size);
+                $this->assertJsonPath($response, 'meta.total', $total);
+            }
+
+            $request = $this->instantiateRequest($next);
+            $page++;
+        } while($page <= $this->json($response, 'meta.pagination.total', 0));
     }
 
     /**
@@ -137,14 +160,22 @@ class ServiceTest extends TestCase
         Example::factory($this->faker->numberBetween(20, 30))->closed()->create();
         Example::factory($this->faker->numberBetween(20, 30), ['created_at' => Carbon::now()->subDays(5)])->open()->create();
 
-        $request = $this->instantiateRequest($this->constructUrlFromParams([]));
-        $service = new Service($request);
         $resources = Example::orderBy('created_at', 'desc')->first();
-
-        $response = $this->parseResponse($service->model(Example::query())->resource(ExampleResource::class)->json())['content'];
+        $response = $this->fetchResponseWithParams(resource: ExampleResource::class);
 
         $this->assertJsonPath($response, "data.0.name", $resources->first()->name);
-        $this->assertJsonEmpty($response, "data.0.email");
 
+        // Json resource should not contain a person's email
+        $this->assertJsonEmpty($response, "data.0.email");
+    }
+
+    protected function fetchResponseWithParams(?array $params = [], JsonResource|string|null $resource = null): string
+    {
+        $request = $this->instantiateRequest($this->constructUrlFromParams($params));
+        $service = new Service($request);
+
+        $resource and $service->resource($resource);
+
+        return $this->getJsonFromResponse($service->model(new Example)->json());
     }
 }

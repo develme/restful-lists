@@ -29,7 +29,7 @@ class PaginationTest extends TestCase
             foreach ($mocks as $mock) {
                 if ($mock instanceof Builder) {
                     $mock->shouldReceive('skip')->with($pagination[0])->once()->andReturn($mock);
-                    $mock->shouldReceive('limit')->with($pagination[1])->once()->andReturn($mock);
+                    $mock->shouldReceive('limit')->with($pagination[1] - $pagination[0])->once()->andReturn($mock);
                     $this->mockBuilderWithResources($mock, $resources, [$total, $resources->count()]);
                 }
             }
@@ -63,7 +63,7 @@ class PaginationTest extends TestCase
             foreach ($mocks as $mock) {
                 if ($mock instanceof Builder) {
                     $mock->shouldReceive('skip')->with($pagination['start'])->once()->andReturn($mock);
-                    $mock->shouldReceive('limit')->with($pagination['end'])->once()->andReturn($mock);
+                    $mock->shouldReceive('limit')->with($pagination['end'] - $pagination['start'])->once()->andReturn($mock);
                     $this->mockBuilderWithResources($mock, $resources, [$total, $resources->count()]);
                 }
             }

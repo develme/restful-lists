@@ -49,7 +49,7 @@ class Service
     {
         $engine = $this->prepareEngine();
 
-        $results = $engine->go()->take(1);
+        $results = $engine->go();
 
         if (!empty($this->resource)) {
             $resource = new Resource($this->resource::collection($results));
@@ -72,7 +72,8 @@ class Service
         $engine->orders($this->request->get('orders', []));
 
         $engine->filters($this->request->get('filters', []));
-        $engine->pagination($this->request->get('pagination', []));
+
+        $this->preparePagination($engine);
 
         return $engine;
     }
@@ -89,5 +90,22 @@ class Service
         }
 
         return $builder;
+    }
+
+    /**
+     * @param Engine $engine
+     */
+    protected function preparePagination(Engine $engine): void
+    {
+        $pagination = $this->request->get('pagination', []);
+        $page = data_get($pagination, 'page', 1);
+        $size = data_get($pagination, 'size');
+
+        if (!empty($size)) {
+            $start = ((int)$page * (int)$size) - (int)$size;
+            $end = $start + $size;
+
+            $engine->pagination(compact('start', 'end'));
+        }
     }
 }

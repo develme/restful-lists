@@ -163,8 +163,11 @@ class ServiceTest extends TestCase
         $resources = Example::orderBy('created_at', 'desc')->first();
         $response = $this->fetchResponseWithParams(resource: ExampleResource::class);
 
+        // Check that we received all the results
         $this->assertJsonPath($response, 'meta.count', $resources->count());
-        $this->assertJsonPath($response, "data.0.name", $resources->first()->name);
+
+        // Json resource should contain a person's name
+        $this->assertJsonNotEmpty($response, "data.0.name");
 
         // Json resource should not contain a person's email
         $this->assertJsonEmpty($response, "data.0.email");

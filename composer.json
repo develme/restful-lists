@@ -28,7 +28,6 @@
         "psr-4": {
             "DevelMe\\RestfulList\\": "src/"
         },
-        "src/": "Develme\\RestfulList\\",
         "files": [
             "src/Support/helpers.php"
         ]

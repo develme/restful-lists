@@ -2,7 +2,7 @@
     "name": "develme/restful-lists",
     "description": "Adds filter, order, and pagination to your restful resource lists",
     "type": "library",
-    "license": "MIT License",
+    "license": "MIT",
     "authors": [
         {
             "name": "Verron Knowles",

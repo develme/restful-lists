@@ -1,6 +1,5 @@
 <?php
 
-
 namespace DevelMe\RestfulList\Engines;
 
 use DevelMe\RestfulList\Contracts\Orchestration;

@@ -248,12 +248,22 @@ trait WithEngineParts
             $class = Util::getParameterClassName($parameter);
             $name = $parameter->getName();
 
-            $dependency = new ReflectionClass($class);
+            $resolvedParameter = $arguments[$name] ?? null;
 
-            $results[] = match (true) {
-                $dependency->implementsInterface(Orchestration::class) === true => $this->generateOrchestratorInstance($setting),
-                default => $arguments[$name] ?? Mockery::mock($class)
-            };
+            if (is_null($resolvedParameter) && !is_null($class)) {
+                $dependency = new ReflectionClass($class);
+
+                $results[] = match (true) {
+                    $dependency->implementsInterface(Orchestration::class) === true => $this->generateOrchestratorInstance($setting),
+                    default => $arguments[$name] ?? Mockery::mock($class)
+                };
+
+                continue;
+            }
+
+            if (is_null($resolvedParameter)) throw new Exception("Could not resolve parameter $name");
+
+            $results[] = $resolvedParameter;
         }
         return $results;
     }

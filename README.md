@@ -1,5 +1,5 @@
 <p align="center">
-<a href="https://travis-ci.org/develme/restful-lists"><img src="https://travis-ci.org/develme/restful-lists.svg" alt="Build Status"></a>
+<a href="https://travis-ci.com/develme/restful-lists"><img src="https://travis-ci.com/develme/restful-lists.svg" alt="Build Status"></a>
 <a href="https://packagist.org/packages/develme/restful-lists"><img src="https://img.shields.io/packagist/dt/develme/restful-lists" alt="Total Downloads"></a>
 <a href="https://packagist.org/packages/develme/restful-lists"><img src="https://img.shields.io/packagist/v/develme/restful-lists" alt="Latest Stable Version"></a>
 <a href="https://packagist.org/packages/develme/restful-lists"><img src="https://img.shields.io/packagist/l/develme/restful-lists" alt="License"></a>
